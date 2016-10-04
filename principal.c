@@ -41,13 +41,6 @@ void menu(){
         return;
     }
     
-    printf("Total de descendentes a descartar : ");
-    scanf("%d",&descarte);
-    if (descarte < 1){
-        printf("\nErro! O total de descendentes a descartar deve ser maior do que zero !!!\n");
-        return;
-    }
-    
     printf("Total de geracoes a evoluir : ");
     scanf("%d",&geracoes);
     if (geracoes < 1){
@@ -62,7 +55,7 @@ void menu(){
         return;
     }
 
-    executar(funcao, total_individuos, descarte, geracoes, prob_mutacao);
+    executar(funcao, total_individuos, geracoes, prob_mutacao);
 
 }
 

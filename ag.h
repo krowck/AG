@@ -5,7 +5,7 @@
 #include "funcoes_benchmark.h"
 #include "gerador_numeros.h"
 
-#define NVARS 10
+#define NVARS 6
  
 /*
  * Este arquivo - "ag.h" - contem apenas prototipos de funcoes.
@@ -43,4 +43,4 @@ void op_selecao_de_pais(t_individuo populacao[], int total_individuos, t_individ
    
 void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, t_individuo novos_individuos[], int descarte);
    
-void executar(int funcao, int total_individuos, int descarte, int geracoes, float prob_mutacao);
+void executar(int funcao, int total_individuos, int geracoes, float prob_mutacao);

@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include <windows.h>
 
 #include "funcoes_benchmark.h"
 #include "gerador_numeros.h"
 
 
-#define NVARS 10
+#define NVARS 6
 #define TAM_TORNEIO 5
 
 /*
@@ -83,10 +84,6 @@ float obter_fitness(int funcao, double cromossomo[]){
     switch (funcao)
     {
         case 1:
-            /*for (i = 0; i < NVARS; ++i)
-            {
-                printf("%ld\n", cromossomo[i]);
-            }*/
             fitness = rastrigin(cromossomo);
             break;
 
@@ -181,7 +178,7 @@ void gerar_populacao_inicial(t_individuo populacao[], int total_individuos, int 
 
 /*
  * Operador de Mutacao
- * Este procedimento implementa o operador de mutacao por RESET ALEATORIO, como especificado no enunciado do trabalho.
+ * Este procedimento implementa o operador de mutacao.
  *
  * Os parametros de entrada deste procedimento sao:
  *  - o filho (ou descendente) gerado pela recombinacao de dois pais selecionados
@@ -200,11 +197,18 @@ void op_mutacao(t_individuo *filho, float prob_mutacao, int funcao){
         float l_sup = 0.0;
         identificar_dominio(funcao,&l_inf,&l_sup);
 
-        for (i = 0; i < NVARS; ++i)
-        {
-            filho->gene[i] = obter_numero_uniforme_continuo(l_inf,l_sup);
-        }
-        filho->fitness = obter_fitness(funcao, filho->gene);      
+        for (i = 0; i < NVARS; ++i){        
+            float v = obter_numero_uniforme();
+            if(v <= 0.5)
+            {
+                filho->gene[i] += obter_numero_uniforme();
+            }
+            else
+            {
+                filho->gene[i] -= obter_numero_uniforme();
+            }
+        }            
+    filho->fitness = obter_fitness(funcao, filho->gene);      
     }
     
 }
@@ -212,10 +216,7 @@ void op_mutacao(t_individuo *filho, float prob_mutacao, int funcao){
 /*
  * Operador de Recombinacao
  * O procedimento abaixo e responsavel por recombinar os codigos geneticos de ambos os pais
- * para criar um novo individuo descendente (filho).
- *
- * Foi implementado o operador de recombinação Aritmetica Completa.
- 
+ * 
  * Os parametros de entrada deste procedimento sao:
  *  - os pais selecionados no torneio ("pai" e "mae")
  *  - o novo individuo (filho ou descendente) a ser gerado pela recombinacao dos dois pais selecionados
@@ -223,8 +224,9 @@ void op_mutacao(t_individuo *filho, float prob_mutacao, int funcao){
  *      facilitando a obtencao do dominio e do fitness de tal funcao.
  */
 
-void op_crossover(t_individuo *pai, t_individuo *mae,  int total_individuos){
-    int point = obter_numero_uniforme_discreto(0, total_individuos-1);
+void op_crossover(t_individuo *pai, t_individuo *mae,  int total_individuos, int funcao){
+    int point = obter_numero_uniforme_discreto(0, NVARS-1);
+
     int i;
     double t;
 
@@ -236,15 +238,9 @@ void op_crossover(t_individuo *pai, t_individuo *mae,  int total_individuos){
         pai->gene[i] = mae->gene[i];
         mae->gene[i] = t;
     }
-
+    pai->fitness = obter_fitness(funcao, pai->gene);
+    mae->fitness = obter_fitness(funcao, mae->gene);
 }
-
-
-
-
-
-
-
 
 /*
  * Operador de Selecao de Pais
@@ -274,39 +270,52 @@ void op_selecao_de_pais(t_individuo populacao[], int total_individuos, t_individ
     {
         sorteio[i] = populacao[obter_numero_uniforme_discreto(0,total_individuos-1)];
     }
-    encontra_melhor_individuo(sorteio,TAM_TORNEIO,mae);
-  
+    encontra_melhor_individuo(sorteio,TAM_TORNEIO,mae);  
 }
 
 /*
- * Operador de Selecao de Sobreviventes
- *
- * No procedimento abaixo e implementado o mecanismo de selecao dos sobreviventes,
- *  usando a estrategia de substituicao dos "lambda" piores individuos,
- *  segundo a avaliacao do fitness.
- *
- * A quantidade de individuos a ser substituida esta representada pela variavel "descarte"
-     (no enunciado pela letra grega "lambda")
- *     
- * Os parametros de entrada deste procedimento sao:
- *  - a populacao (vetor de "t_individuo")
- *  - o tamanho da populacao ("total_individuos")
- *  - o vetor que representada novos individuos ("novos_individuos")
- *  - "descarte": a quantidade de individuos a estarem presentes no vetor "novos_individuos"
- * 
- *
- */
+apenas atualizar o vetor de população com os novos individuos gerador a partir de crossover e mutação
+*/
 void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, t_individuo novos_individuos[], int descarte){
     int i = 0;
     int j = total_individuos-1;
     
-    for(i = 0; i < descarte; i++, j--){
-        populacao[j] = novos_individuos[i];
+    for(i = 0; i < descarte; i++){
+        populacao[i] = novos_individuos[i];
     }
 }
 
-
-
+double diversity_population(t_individuo pop[], int tamPopulation)
+{
+    double m_nmdf = 0;
+    double diversity = 0;
+    double aux_1 = 0;
+    double aux_2 = 0;
+    unsigned short int a = 0;
+    unsigned short int b = 0;
+    unsigned short int d = 0;
+    for(a = 0; a < tamPopulation; a++)
+    {
+        for(b = (a+1); b < tamPopulation; b++)
+        {
+            aux_1 = 0;
+            for(d = 0; d < NVARS; d++)
+            {       
+                aux_1 += pow(pop[a].gene[d] - pop[b].gene[d], 2);
+            }
+            if(b == (a+1) || aux_2 > aux_1)
+            {
+                aux_2 = aux_1;
+            }
+        }
+        diversity += log((double)1.0 + aux_2);  
+    } 
+    if(m_nmdf < diversity)
+    {
+       m_nmdf = diversity;
+    }
+    return diversity / m_nmdf;
+}
 /*
  * Evolucao da Populacao
  * No procedimento "executar" que e realizada a Evolucao da Populacao.
@@ -314,52 +323,48 @@ void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, 
  * Os parametros de entrada (definidos pelo usuario) deste procedimento sao:
  *  - o codigo (ou ID) da funcao a ser otimizada
  *  - o tamanho da populacao (ou total de individuos "total_individuos" da populacao)
- *  - a quantidade "descarte" de individuos a serem substituidos na proxima geracao
  *  - por quantas "geracoes" a populacao inicial sera evoluida
- *  - a probabilidade (baixa) de mutacao (prob_mutacao)
+ *  - a probabilidade de mutacao (prob_mutacao)
  */
-void executar(int funcao, int total_individuos, int descarte, int geracoes, float prob_mutacao){
+void executar(int funcao, int total_individuos, int geracoes, float prob_mutacao){
     srand((unsigned)time(NULL)); 
-    int seed = 123456789;
     /*
      * A Populacao e representada como um vetor de "t_individuo", cujo o tamanho e "total_individuos" (definido previamente pelo usuario).
-     * A variavel "total_individuos" e equivalente a letra grega "mu" especificada no enunciado do trabalho.
      */
     t_individuo populacao[total_individuos]; 
     
     gerar_populacao_inicial(populacao, total_individuos, funcao);
     printf("POPULAÇAO INICIAL\n\n");
     imprimir_populacao(populacao, total_individuos);
-    //Sleep(30000);
     int g = 0; //contador de geracoes
     int j = 0;
-    printf("\n#\tx_1\t\tx_2\t\tf(x_1, x_2)\n"); //Saida de Dados
+    printf("\n#\tx_1\t\tx_2\t\tf(x_1, x_2)                             diversidade\n\n"); //Saida de Dados
     for(g = 0; g < geracoes; g++){
-    
-        t_individuo novos_individuos[descarte]; //vetor de novos individuos
+        double diversidade = diversity_population(populacao, total_individuos);
+        //imprimir_populacao(populacao, total_individuos);
+        t_individuo novos_individuos[total_individuos]; //vetor de novos individuos
         
         int i;
-        for(i = 0; i < descarte; i++){
+
+        for(i = 0; i < total_individuos; i++){
         
             t_individuo pai;
             t_individuo mae;
-            t_individuo filho;
-            
 
-            //printf("SELECAO DE PAIS\n");
             op_selecao_de_pais(populacao, total_individuos, &pai, &mae);
-            //printf("POPULACAO: \n");
-            //imprimir_populacao(populacao, total_individuos);
-            
-            op_crossover(&pai, &mae, total_individuos);
-            //printf("MUTACAO\n");
-            op_mutacao(&filho,prob_mutacao,funcao);
-            //imprimir_individuo(filho);
-            
-            novos_individuos[i] = filho;
+
+            op_crossover(&pai, &mae, total_individuos, funcao);
+
+            op_mutacao(&pai,prob_mutacao,funcao);
+
+            op_mutacao(&mae,prob_mutacao,funcao);
+            novos_individuos[i] = pai;
+            i++;
+            novos_individuos[i] = mae;
         }
-        
         mergeSort(populacao, total_individuos);
+
+        op_selecao_de_sobreviventes(populacao,total_individuos,novos_individuos,total_individuos);
         
         mergeSort(populacao, total_individuos);
         
@@ -368,7 +373,8 @@ void executar(int funcao, int total_individuos, int descarte, int geracoes, floa
             printf("%f ", populacao[0].gene[j]);
         }
         // Saida de Dados
-        printf("%d\t%f\n",g,populacao[0].fitness); //saida de dados        
+        printf("%d\t%f  ",g,populacao[0].fitness); //saida de dados
+        printf("  %f\n", diversidade);
         
     }
 

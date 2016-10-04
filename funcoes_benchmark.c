@@ -1,7 +1,7 @@
 #include <math.h>
 #define PI 3.14159265359
 
-#define NVARS 10
+#define NVARS 6
 /*
  * Este arquivo - "funcoes_bechmark.c" - contem a implementacao das funcoes do benchmark.
  *
@@ -28,7 +28,7 @@ float rastrigin(double cromossomo[]){
  * Implementacao da funcao que informa os valores de dominio referente a funcao de benchmark RASTRIGIN
  */
 void d_rastrigin(float d[]){
-    d[0] = -2.0;
-    d[1] = 2.0;
+    d[0] = -5.12;
+    d[1] = 5.12;
 }
 

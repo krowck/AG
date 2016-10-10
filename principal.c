@@ -19,7 +19,6 @@ void menu(){
 
     int funcao = 0;
     int total_individuos = 0;
-    int descarte = 0;
     int geracoes = 0;
     float prob_mutacao = 0.0;
 

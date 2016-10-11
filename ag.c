@@ -1,15 +1,15 @@
-/*************************************************************************************
-*                        Algoritmo desenvolvido para TCC                             *
-*  para compilar: gcc ag.c -o main principal.c funcoes_benchmark.c gerador_numeros.c *
-*                                                                                    *
-*                                                                                    *
-*************************************************************************************/
+/*******************************************************************************************
+*                        Algoritmo desenvolvido para TCC                                   *
+*  para compilar: gcc ag.c -lm -o main principal.c funcoes_benchmark.c gerador_numeros.c   *
+*                                                                                          *
+*                                                                                          *
+*******************************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <windows.h>
+//#include <windows.h>
 
 #include "funcoes_benchmark.h"
 #include "gerador_numeros.h"
@@ -25,6 +25,7 @@ double m_nmdf = 0;
 typedef struct {
     double gene[NVARS];
     double fitness;
+    int index;
 } t_individuo;
 
 void merge(t_individuo vet[], int tam_vet) {
@@ -442,6 +443,7 @@ void clusterAnalysis(t_individuo populacao[], double clusterRadius, int total_in
             min = find_minimum_value(EuclideanDistance, numberOfClusters);
             index = find_minimum_index(EuclideanDistance, numberOfClusters);
             //printf("%f\n", min);
+            populacao[i].index = index;
             clusterID[i] = index;
             distanceFromCenter[i] = min;
         }
@@ -518,7 +520,12 @@ void executar(int funcao, int total_individuos, int geracoes, float prob_mutacao
 
         clusterAnalysis(populacao, clusterRadius, total_individuos, clusterID, distanceFromCenter, clusterCenter);
 
-        int maxClusters = 3;        
+        int maxClusters = 3;      
+
+        /*for (int i = 0; i < total_individuos; ++i)
+          {
+              printf("CLUSTER: %f  INDEX: %d\n", clusterID[i], populacao[i].index);
+        }*/  
 
         /*for (int i = 0; i < maxClusters; ++i)
         {

@@ -1,7 +1,7 @@
 #include <math.h>
 #define PI 3.14159265359
 
-#define NVARS 5
+#define NVARS 30
 /*
  * Este arquivo - "funcoes_bechmark.c" - contem a implementacao das funcoes do benchmark.
  *
@@ -21,7 +21,7 @@ float rastrigin(double cromossomo[]){
         {
                 obj += (pow(cromossomo[j],(double)2)-cos(2*PI*cromossomo[j]));
         }
-    return 100 - obj;
+    return NVARS + obj;
 }
 
 float quadratic(double cromossomo[]){
@@ -29,20 +29,52 @@ float quadratic(double cromossomo[]){
 	int j;
 	for (j = 0; j < NVARS; ++j)
 	{
-		obj += cromossomo[j] + (pow(10, j-1) * pow(cromossomo[j],2));
+		obj += (pow(10, j-1) * pow(cromossomo[j],2));
 	}
 	return obj;
 }
 
+float rosenbrock(double cromossomo[])
+{
+	double obj = 0;
+	int j;
+	obj = 100 * pow((cromossomo[1] - pow(cromossomo[0], 2) ),2) + pow((1 - cromossomo[0]),2);
+	return obj;
+}
+
+float schwefel(double cromossomo[])
+{
+	double obj = 0;
+	int j;
+	for (j = 0; j < NVARS; ++j)
+	{
+		obj += cromossomo[j] * sin(sqrt(fabs(cromossomo[j])));
+	}
+	return 418.9829*NVARS - obj;
+}
 /*
  * Implementacao da funcao que informa os valores de dominio referente a funcao de benchmark RASTRIGIN
  */
-void d_rastrigin(float d[]){
+void d_rastrigin(float d[])
+{
     d[0] = -5.12;
     d[1] = 5.12;
 }
 
-void d_quadratic(float d[]){
+void d_quadratic(float d[])
+{
 	d[0] = -10.0;
 	d[1] = 10.0;
+}
+
+void d_rosenbrock(float d[])
+{
+	d[0] = -1.5;
+	d[1] = 1.5;
+}
+
+void d_schwefel(float d[])
+{
+	d[0] = -500.0;
+	d[1] = 500.0;
 }

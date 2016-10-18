@@ -26,11 +26,13 @@ void menu(){
     printf("========== =========\n\n");
     printf("1) Rastrigin\n");
     printf("2) Quadratic\n");
+    printf("3) Rosenbrock\n");
+    printf("4) Schwefel\n");
 
     printf("Selecione a funcao a minimizar : ");
     scanf("%d",&funcao);
-    if (funcao < 1 || funcao > 5){
-        printf("\nOpcao Invalida! Opcoes possiveis: 1-5 !!!\n");
+    if (funcao < 1 || funcao > 4){
+        printf("\nOpcao Invalida! Opcoes possiveis: 1-4 !!!\n");
         return;
     }
     

@@ -38,7 +38,7 @@ float rosenbrock(double cromossomo[])
 {
 	double obj = 0;
 	int j;
-	obj = 100 * pow((cromossomo[1] - pow(cromossomo[0], 2) ),2) + pow((1 - cromossomo[0]),2);
+	obj = (100 * pow((cromossomo[1] - pow(cromossomo[0], 2) ),2) ) + pow((1 - cromossomo[0]),2);
 	return obj;
 }
 
@@ -48,9 +48,9 @@ float schwefel(double cromossomo[])
 	int j;
 	for (j = 0; j < NVARS; ++j)
 	{
-		obj += cromossomo[j] * sin(sqrt(fabs(cromossomo[j])));
+		obj += (-(cromossomo[j])) * sin(sqrt(fabs(cromossomo[j])));
 	}
-	return 418.9829*NVARS - obj;
+	return 418.9829*NVARS + obj;
 }
 /*
  * Implementacao da funcao que informa os valores de dominio referente a funcao de benchmark RASTRIGIN

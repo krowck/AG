@@ -673,13 +673,14 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, int prob
     op_selecao_de_sobreviventes(melhores, maxClusters, novos_individuos, 0);
 }
 
-void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int total_individuos, int maxClusters)
+void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int total_individuos, int maxClusters, int prob_mutacao, int funcao)
 {
     int i;
     t_individuo novos_individuos[total_individuos];
     t_individuo pop_aux[total_individuos + maxClusters];
     int vetor_aux[total_individuos + maxClusters];
     int vetor_pai[total_individuos + maxClusters];
+    t_individuo mutado;
 
 
     for (i = 0; i < total_individuos + maxClusters; ++i)
@@ -700,12 +701,15 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
     {
         if (vetor_pai[i] >= total_individuos)
         {
-            novos_individuos[i] = melhores[(total_individuos+maxClusters-1) - vetor_pai[i]];
-            //imprimir_individuo(melhores[13 - vetor_pai[i]]);
+            mutado = melhores[(total_individuos+maxClusters-1) - vetor_pai[i]];
+            op_mutacao(&mutado, prob_mutacao, funcao);
+            novos_individuos[i] = mutado;
         }
         else
         {
-            novos_individuos[i] = populacao[vetor_pai[i]];
+            mutado = populacao[vetor_pai[i]];
+            op_mutacao(&mutado, prob_mutacao, funcao);
+            novos_individuos[i] = mutado;
         }        
     }
     //imprimir_populacao(novos_individuos, total_individuos);
@@ -758,7 +762,7 @@ void executar(int funcao, int total_individuos, int geracoes, float prob_mutacao
         double clusterCenter[total_individuos][NVARS];
         double distanceFromCenter[total_individuos];
         int comecar = 0;
-        int maxClusters = 4; 
+        int maxClusters = 6; 
         t_individuo populacao_aux[total_individuos];
         t_individuo melhores[maxClusters];
         t_individuo best;
@@ -780,7 +784,7 @@ void executar(int funcao, int total_individuos, int geracoes, float prob_mutacao
         //printf("POPULAÇAO ANTES:\n");
         //imprimir_populacao(populacao, total_individuos);
 
-        generateNextPopulation(populacao, melhores, total_individuos, maxClusters);
+        generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao);
 
         //populacao[total_individuos-1] = best;
 

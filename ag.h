@@ -5,7 +5,7 @@
 #include "funcoes_benchmark.h"
 #include "gerador_numeros.h"
 
-#define NVARS 6
+
  
 /*
  * Este arquivo - "ag.h" - contem apenas prototipos de funcoes.

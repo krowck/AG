@@ -25,6 +25,7 @@ void menu(){
     printf("\n\nAlgoritmos Geneticos\n");
     printf("========== =========\n\n");
     printf("1) Rastrigin\n");
+    printf("2) Quadratic\n");
 
     printf("Selecione a funcao a minimizar : ");
     scanf("%d",&funcao);

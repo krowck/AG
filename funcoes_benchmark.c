@@ -1,7 +1,7 @@
 #include <math.h>
 #define PI 3.14159265359
 
-#define NVARS 6
+#define NVARS 5
 /*
  * Este arquivo - "funcoes_bechmark.c" - contem a implementacao das funcoes do benchmark.
  *
@@ -19,9 +19,19 @@ float rastrigin(double cromossomo[]){
     int j;
     for(j = 0 ; j < NVARS; j++)
         {
-                obj = obj + (pow(cromossomo[j],(double)2)-10*cos(2*PI*cromossomo[j])+10);
+                obj += (pow(cromossomo[j],(double)2)-cos(2*PI*cromossomo[j]));
         }
-    return obj;
+    return 100 - obj;
+}
+
+float quadratic(double cromossomo[]){
+	double obj = 0;
+	int j;
+	for (j = 0; j < NVARS; ++j)
+	{
+		obj += cromossomo[j] + (pow(10, j-1) * pow(cromossomo[j],2));
+	}
+	return obj;
 }
 
 /*
@@ -32,3 +42,7 @@ void d_rastrigin(float d[]){
     d[1] = 5.12;
 }
 
+void d_quadratic(float d[]){
+	d[0] = -10.0;
+	d[1] = 10.0;
+}

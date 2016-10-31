@@ -20,7 +20,7 @@ void menu(){
     int funcao = 0;
     int total_individuos = 0;
     int geracoes = 0;
-    float prob_mutacao = 0.0;
+    double prob_mutacao = 0.0;
 
     printf("\n\nAlgoritmos Geneticos\n");
     printf("========== =========\n\n");
@@ -51,7 +51,8 @@ void menu(){
     }
     
     printf("Probabilidade de mutacao : ");
-    scanf("%f",&prob_mutacao);
+    scanf("%lf",&prob_mutacao);
+    printf("%lf\n", prob_mutacao);
     if (prob_mutacao < 0 || prob_mutacao > 1){
         printf("\nErro! A probabilidade de mutacao deve estar no intervalo entre 0 e 1 !!!\n");
         return;

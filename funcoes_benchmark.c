@@ -50,7 +50,7 @@ float schwefel(double cromossomo[])
 	{
 		obj += (-(cromossomo[j])) * sin(sqrt(fabs(cromossomo[j])));
 	}
-	return 418.9829*NVARS + obj;
+	return obj;
 }
 /*
  * Implementacao da funcao que informa os valores de dominio referente a funcao de benchmark RASTRIGIN

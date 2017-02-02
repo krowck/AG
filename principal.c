@@ -28,11 +28,15 @@ void menu(){
     printf("2) Quadratic\n");
     printf("3) Rosenbrock\n");
     printf("4) Schwefel\n");
+    printf("5) Ackley\n");
+    printf("6) Griewank\n");
+    printf("7) Powell\n");
+    printf("8) Zakharov\n");
 
     printf("Selecione a funcao a minimizar : ");
     scanf("%d",&funcao);
-    if (funcao < 1 || funcao > 4){
-        printf("\nOpcao Invalida! Opcoes possiveis: 1-4 !!!\n");
+    if (funcao < 1 || funcao > 8){
+        printf("\nOpcao Invalida! Opcoes possiveis: 1-8 !!!\n");
         return;
     }
     
@@ -52,7 +56,6 @@ void menu(){
     
     printf("Probabilidade de mutacao : ");
     scanf("%lf",&prob_mutacao);
-    printf("%lf\n", prob_mutacao);
     if (prob_mutacao < 0 || prob_mutacao > 1){
         printf("\nErro! A probabilidade de mutacao deve estar no intervalo entre 0 e 1 !!!\n");
         return;

@@ -106,6 +106,18 @@ float obter_fitness(int funcao, double cromossomo[]){
         case 4:
             fitness = schwefel(cromossomo);
             break;
+        case 5:
+            fitness = ackley(cromossomo);
+            break;
+        case 6:
+            fitness = griewank(cromossomo);
+            break;
+        case 7:
+            fitness = powell(cromossomo);
+            break;
+        case 8:
+            fitness = zakharov(cromossomo);
+            break;
         default:
             printf ("\nERRO!\n");
     }
@@ -128,6 +140,18 @@ void identificar_dominio(int funcao, float *l_inf, float *l_sup){
             break;
         case 4:
             d_schwefel(d);
+            break;
+        case 5:
+            d_ackley(d);
+            break;
+        case 6:
+            d_griewank(d);
+            break;
+        case 7:
+            d_powell(d);
+            break;
+        case 8:
+            d_zakharov(d);
             break;
         default:
             printf ("\nERRO!\n");
@@ -329,7 +353,7 @@ void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, 
     }
 
 }
-
+/*
 double diversity_population(t_individuo pop[], int tamPopulation)
 {
 
@@ -361,7 +385,8 @@ double diversity_population(t_individuo pop[], int tamPopulation)
     }
     return diversity / m_nmdf;
 }
-/*
+*/
+
 
 double diversity_population(t_individuo pop[], int tamPopulation)
 {
@@ -397,7 +422,7 @@ double diversity_population(t_individuo pop[], int tamPopulation)
     }
     return diversity / m_nmdf;
 }
-*/
+
 
 /****
 ** kmeans.c
@@ -934,14 +959,18 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     int j;
     double vet_melhores[RUNS][geracoes];
     double vet_diversidade[RUNS][geracoes];
+    struct timeval timevalA;
+    struct timeval timevalB;
+
     FILE *fpMedia;
     FILE *fpDiversidade;
     FILE *fp;
 
+
     fpMedia = fopen("mediaGeracoes.txt", "w+");
     fpDiversidade = fopen("mediaDiversity.txt", "w+");
     fp = fopen("output.txt", "w+");
-
+    gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)
     {
         double startingClusterRadius = 0.3;
@@ -1055,6 +1084,9 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
         printf("%d\n", run);
         fprintf(fp, "-------------------------------");    
     }
+    gettimeofday(&timevalB,NULL);
+
+    printf("\n\ntempo de execucao: %lf\n",  (timevalB.tv_sec-timevalA.tv_sec+(timevalB.tv_usec-timevalA.tv_usec)/(double)1000000)/10.0);
 
     double mediabest[geracoes];
     double mediaDiversity[geracoes];

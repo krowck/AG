@@ -54,14 +54,14 @@ void menu(){
         return;
     }
     
-    printf("Probabilidade de mutacao : ");
-    scanf("%lf",&prob_mutacao);
-    if (prob_mutacao < 0 || prob_mutacao > 1){
-        printf("\nErro! A probabilidade de mutacao deve estar no intervalo entre 0 e 1 !!!\n");
-        return;
-    }
+    // printf("Probabilidade de mutacao : ");
+    // scanf("%lf",&prob_mutacao);
+    // if (prob_mutacao < 0 || prob_mutacao > 1){
+    //     printf("\nErro! A probabilidade de mutacao deve estar no intervalo entre 0 e 1 !!!\n");
+    //     return;
+    // }
 
-    executar(funcao, total_individuos, geracoes, prob_mutacao);
+    executar(funcao, total_individuos, geracoes);
 
 }
 

@@ -9,8 +9,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <windows.h>
+//#include <windows.h>
 #include <assert.h>
+#include <string.h>
 #include <float.h>
 
 #include "./src-clstr/cluster.h" 
@@ -19,9 +20,12 @@
 
 #define TAM_TORNEIO 5
 #define RUNS 10
+#define MINVAL 0.01 
+#define MAXVAL 0.99 
+
 
 double m_nmdf = 0;
-double ** distances;
+double **distances;
 Node * g_tree;
 
 /*
@@ -438,16 +442,16 @@ void singlelink(int total_individuos, int dimensions)
     double minrange;
     unsigned short int i = 0;
 
-    g_tree = treecluster(total_individuos, total_individuos, 0, 0, 0, 0, 'e', 's', g_distances);
+    g_tree = treecluster(total_individuos, total_individuos, 0, 0, 0, 0, 'e', 's', distances);
     
     if(!g_tree)
     {
-            std::cout << " Erro ao gerar dendograma" << std::endl;
-            return;
+        printf("Erro ao gerar.\n");
+        return;
     }
 
     maxrange = -1;
-    for (i = 0; i < total_individuos-1;i++)
+    for (i = 0; i < total_individuos;i++)
     {
         if (maxrange < g_tree[i].distance)
         {
@@ -455,7 +459,7 @@ void singlelink(int total_individuos, int dimensions)
         }
     }
     minrange = maxrange;
-    for (i = 0; i < total_individuos-1; i++)
+    for (i = 0; i < total_individuos; i++)
     {
         if (minrange > g_tree[i].distance)
         {
@@ -463,11 +467,31 @@ void singlelink(int total_individuos, int dimensions)
         }
     }
 
-    for (i = 0 ;i < total_individuos-1;i++)
+    for (i = 0 ;i < total_individuos;i++)
     {
             g_tree[i].distance=(MAXVAL-MINVAL)/(double)(maxrange-minrange)*g_tree[i].distance-(MAXVAL-MINVAL)/(double)(maxrange-minrange)*minrange+MINVAL;
     }
     
+}
+
+void printDendogram(int total_individuos)
+{
+    unsigned short int i=0;
+    FILE *dendogram;
+    dendogram = fopen("dendogram.txt", "w+");
+
+    for(i=0; i< total_individuos; i++)
+    {
+        if (g_tree[i].left >= 0 && g_tree[i].right >= 0)
+            fprintf(dendogram, "%f  %f          %f\n", g_tree[i].left+1, g_tree[i].right+1, g_tree[i].distance);
+        if (g_tree[i].left >= 0 && g_tree[i].right < 0)
+            fprintf(dendogram, "%f  %f          %f\n", g_tree[i].left+1, (-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
+        if (g_tree[i].left < 0 && g_tree[i].right >= 0)
+            fprintf(dendogram, "%f  %f          %f\n", (-1*g_tree[i].left)+total_individuos, g_tree[i].right+1, g_tree[i].distance);
+        if (g_tree[i].left < 0 && g_tree[i].right < 0)
+            fprintf(dendogram, "%f  %f          %f\n", (-1*g_tree[i].left)+total_individuos,(-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
+    }
+    fclose(dendogram);
 }
 
 
@@ -504,20 +528,33 @@ double distancia_euclidiana(t_individuo pop[], int total_individuos)
     double euclid_max = 0;
     double temp = 0;
     int i, j, k;
+    unsigned short int a = 0;
+
+    distances = (double**) malloc(total_individuos*sizeof(double*));
+    for(a = 0; a < total_individuos+1; a++)
+    {
+        distances[a] = (double*) malloc(total_individuos*sizeof(double));
+    }
 
     //imprimir_populacao(pop, total_individuos);
     for (i = 0; i < total_individuos; ++i)
     {
-        for (j = i+1; i < total_individuos; ++j)
+        for (j = i+1; j < total_individuos; ++j)
         {        
-            for (k = i+1; k < NVARS; ++k)
+            for (k = i; k < NVARS; ++k)
             {
                 //printf("GENE: %f \nCLUSTER: %f\n", pop[i].gene[k], clusterCenter[j][k]);
                 //media += euclidiana(pop[i].gene[k], pop[i].gene[k]);
                 media += pow(fabs(pop[i].gene[k] - pop[j].gene[k]), 2.0);
+                //printf("k = %d\n", k);
             }
+            // printf("j = %d\n", j);
+            // printf("i = %d\n", i);
+            // printf("media = %f\n", media);
             distances[i][j] = sqrt(media);
+            //printf("sqrt(media) = %f\n", sqrt(media));
             distances[j][i] = distances[i][j];
+            //printf("passou\n");
             if (euclid_max < distances[i][j])
             {
                 euclid_max = distances[i][j];
@@ -592,13 +629,15 @@ void clusterAnalysis(t_individuo populacao[], double clusterRadius, int total_in
         //printf("\n");
     }
     */
-
-    int *c = k_means(populacao, total_individuos, NVARS, numberOfClusters, 0.0001, 0);
+    distancia_euclidiana(populacao, total_individuos);
+    singlelink(total_individuos, NVARS);
+    printDendogram(total_individuos);
+    //int *c = k_means(populacao, total_individuos, NVARS, numberOfClusters, 0.0001, 0);
 
     for (i = 0; i < total_individuos; ++i)
     {
-        populacao[i].index = c[i];
-        clusterID[i] = c[i];
+        populacao[i].index = g_tree[i].distance;
+        clusterID[i] = g_tree[i].distance;
     }
 
     /*
@@ -877,7 +916,7 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
  *  - por quantas "geracoes" a populacao inicial sera evoluida
  *  - a probabilidade de mutacao (prob_mutacao)
  */
-void executar(int funcao, int total_individuos, int geracoes, double prob_mutacao){
+void executar(int funcao, int total_individuos, int geracoes){
     srand((unsigned)time(NULL)); 
 
     int run;

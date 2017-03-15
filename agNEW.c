@@ -1,6 +1,6 @@
 /******************************************************************************************************************
 *                                   Algoritmo desenvolvido para o TCC                                             *
-*  para compilar:  gcc ag.c -lm -o main principal.c funcoes_benchmark.c gerador_numeros.c ./src-clstr/cluster.c   *
+*  para compilar:  gcc agNEW.c -lm -o main principal.c funcoes_benchmark.c gerador_numeros.c ./src-clstr/cluster.c   *
 *                                                                                                                 *
 *                                                                                                                 *
 ******************************************************************************************************************/
@@ -21,6 +21,8 @@
 #define RUNS 10
 
 double m_nmdf = 0;
+double ** distances;
+Node * g_tree;
 
 /*
  * A estrutura (struct) "t_individuo" representa um unico individuo da populacao
@@ -425,145 +427,53 @@ double diversity_population(t_individuo pop[], int tamPopulation)
 }
 
 
-/****
-** kmeans.c
-** - a simple k-means clustering routine
-** - returns the cluster labels of the data points in an array
-** - here's an example
-**   extern int *k_means(double**, int, int, int, double, double**);
-**   ...
-**   int *c = k_means(data_points, num_points, dim, 20, 1e-4, 0);
-**   for (i = 0; i < num_points; i++) {
-**      printf("data point %d is in cluster %d\n", i, c[i]);
-**   }
-**   ...
-**   free(c);
-** Parameters
-** - array of data points (double **data)
-** - number of data points (int n)
-** - dimension (int m)
-** - desired number of clusters (int k)
-** - error tolerance (double t)
-**   - used as the stopping criterion, i.e. when the sum of
-**     squared euclidean distance (standard error for k-means)
-**     of an iteration is within the tolerable range from that
-**     of the previous iteration, the clusters are considered
-**     "stable", and the function returns
-**   - a suggested value would be 0.0001
-** - output address for the final centroids (double **centroids)
-**   - user must make sure the memory is properly allocated, or
-**     pass the null pointer if not interested in the centroids
-** References
-** - J. MacQueen, "Some methods for classification and analysis
-**   of multivariate observations", Fifth Berkeley Symposium on
-**   Math Statistics and Probability, 281-297, 1967.
-** - I.S. Dhillon and D.S. Modha, "A data-clustering algorithm
-**   on distributed memory multiprocessors",
-**   Large-Scale Parallel Data Mining, 245-260, 1999.
-** Notes
-** - this function is provided as is with no warranty.
-** - the author is not responsible for any damage caused
-**   either directly or indirectly by using this function.
-** - anybody is free to do whatever he/she wants with this
-**   function as long as this header section is preserved.
-** Created on 2005-04-12 by
-** - Roger Zhang (rogerz@cs.dal.ca)
-** Modifications
-** -
-** Last compiled under Linux with gcc-3
-*/
 
+/**************************************************************************
+        ALGORITMO DE CLUSTERIZAÇÃO - SINGLE LINK
+**************************************************************************/
 
-
-int *k_means(t_individuo data[], int n, int m, int k, double t, double **centroids)
+void singlelink(int total_individuos, int dimensions)
 {
-    /* output cluster label for each data point */
-    int *labels = (int*)calloc(n, sizeof(int));
+    double maxrange;
+    double minrange;
+    unsigned short int i = 0;
 
-    int h, i, j; /* loop counters, of course :) */
-    int *counts = (int*)calloc(k, sizeof(int)); /* size of each cluster */
-    double old_error, error = DBL_MAX; /* sum of squared euclidean distance */
-    double **c = centroids ? centroids : (double**)calloc(k, sizeof(double*));
-    double **c1 = (double**)calloc(k, sizeof(double*)); /* temp centroids */
-
-    //assert(data && k > 0 && k <= n && m > 0 && t >= 0); /* for debugging */
-
-    /****
-    ** initialization */
-
-    for (h = i = 0; i < k; h += n / k, i++) 
+    g_tree = treecluster(total_individuos, total_individuos, 0, 0, 0, 0, 'e', 's', g_distances);
+    
+    if(!g_tree)
     {
-        c1[i] = (double*)calloc(m, sizeof(double));
-        if (!centroids)
+            std::cout << " Erro ao gerar dendograma" << std::endl;
+            return;
+    }
+
+    maxrange = -1;
+    for (i = 0; i < total_individuos-1;i++)
+    {
+        if (maxrange < g_tree[i].distance)
         {
-         c[i] = (double*)calloc(m, sizeof(double));
+            maxrange = g_tree[i].distance;
         }
-        /* pick k points as initial centroids */
-        for (j = m; j-- > 0; c[i][j] = data[h].gene[j]);
     }
-
-    /****
-    ** main loop */
-
-    do {
-        /* save error from last step */
-        old_error = error, error = 0;
-
-        /* clear old counts and temp centroids */
-        for (i = 0; i < k; counts[i++] = 0) {
-            for (j = 0; j < m; c1[i][j++] = 0);
-        }
-
-        for (h = 0; h < n; h++) 
+    minrange = maxrange;
+    for (i = 0; i < total_individuos-1; i++)
+    {
+        if (minrange > g_tree[i].distance)
         {
-            /* identify the closest cluster */
-            double min_distance = DBL_MAX;
-            for (i = 0; i < k; i++) 
-            {
-                double distance = 0;
-                for (j = m; j-- > 0; distance += pow(data[h].gene[j] - c[i][j], 2));
-                if (distance < min_distance) 
-                {
-                    labels[h] = i;
-                    min_distance = distance;
-                }
-            }
-            /* update size and temp centroid of the destination cluster */
-            for (j = m; j-- > 0; c1[labels[h]][j] += data[h].gene[j]);
-            counts[labels[h]]++;
-            /* update standard error */
-            error += min_distance;
+            minrange = g_tree[i].distance;
         }
-
-        for (i = 0; i < k; i++)
-        { /* update all centroids */
-            for (j = 0; j < m; j++) 
-            {
-                c[i][j] = counts[i] ? c1[i][j] / counts[i] : c1[i][j];
-            }
-        }
-
-    } while (fabs(error - old_error) > t);
-
-    /****
-    ** housekeeping */
-
-    for (i = 0; i < k; i++) {
-        if (!centroids) {
-            free(c[i]);
-        }
-        free(c1[i]);
     }
 
-    if (!centroids) {
-        free(c);
+    for (i = 0 ;i < total_individuos-1;i++)
+    {
+            g_tree[i].distance=(MAXVAL-MINVAL)/(double)(maxrange-minrange)*g_tree[i].distance-(MAXVAL-MINVAL)/(double)(maxrange-minrange)*minrange+MINVAL;
     }
-    free(c1);
-
-    free(counts);
-
-    return labels;
+    
 }
+
+
+/**************************************************************************
+        FIM ALGORITMO DE CLUSTERIZAÇÃO - SINGLE LINK
+**************************************************************************/
 
 double sum_array(t_individuo pop[], int num_elements)
 {
@@ -583,31 +493,46 @@ double euclidiana(double ind1, double ind2)
     for (i = 0; i < NVARS; ++i)
     {
         soma += pow((ind1 - ind2),2);
-   }
+    }
    return sqrt(soma);
 }
 
-double distancia_euclidiana(t_individuo pop[], int total_individuos, double clusterCenter[total_individuos][NVARS], int numberOfClusters)
+double distancia_euclidiana(t_individuo pop[], int total_individuos)
 {
     double media = 0.0;
     double aux = 0;
+    double euclid_max = 0;
+    double temp = 0;
     int i, j, k;
 
     //imprimir_populacao(pop, total_individuos);
     for (i = 0; i < total_individuos; ++i)
     {
-        for (j = 0; j < numberOfClusters; ++j)
-        {
-            for (k = 0; k < NVARS; ++k)
+        for (j = i+1; i < total_individuos; ++j)
+        {        
+            for (k = i+1; k < NVARS; ++k)
             {
                 //printf("GENE: %f \nCLUSTER: %f\n", pop[i].gene[k], clusterCenter[j][k]);
-                media += euclidiana(pop[i].gene[k], clusterCenter[j][k]);
+                //media += euclidiana(pop[i].gene[k], pop[i].gene[k]);
+                media += pow(fabs(pop[i].gene[k] - pop[j].gene[k]), 2.0);
             }
-            aux+=1;            
+            distances[i][j] = sqrt(media);
+            distances[j][i] = distances[i][j];
+            if (euclid_max < distances[i][j])
+            {
+                euclid_max = distances[i][j];
+            }
+            media = 0.0;
         }
     }
-    //printf("%f\n", media/aux);
-    return media/aux;
+    for(i = 0; i < total_individuos; i++)
+    {
+        for(j = i +1; j < total_individuos; j++)
+        {
+            distances[i][j] = distances[i][j] / euclid_max;
+            distances[j][i] = distances[i][j];
+        }
+    }
 }
 
 double find_minimum_value(double a[], int n) 

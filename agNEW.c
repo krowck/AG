@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <string.h>
 #include <float.h>
+#include <unistd.h>
 
 #include "./src-clstr/cluster.h" 
 #include "funcoes_benchmark.h"
@@ -208,6 +209,7 @@ void imprimir_populacao(t_individuo populacao[], int total_individuos){
         
         //printf("fitness: %d\n\n",obter_numero_uniforme_discreto(0,4)); //4 inclusive
     }
+    printf("\n----------------------------------\n");
 }
 
 /*
@@ -440,10 +442,23 @@ void singlelink(int total_individuos, int dimensions)
 {
     double maxrange;
     double minrange;
-    unsigned short int i = 0;
+    unsigned short int i = 0, j=0;
+
+    // for (i = 0; i < total_individuos; ++i)
+    // {
+    //     for (j = 0; j < total_individuos; ++j)
+    //     {
+    //         printf("distances[%d][%d] = %f\n",i, j, distances[i][j]);
+    //     }
+    // }
 
     g_tree = treecluster(total_individuos, total_individuos, 0, 0, 0, 0, 'e', 's', distances);
     
+    // for (i = 0; i < total_individuos; i++)
+    // {
+    //     printf("gtree[%d] = %f \n\n-------------------------\n\n", i, g_tree[i].distance);
+    // }
+
     if(!g_tree)
     {
         printf("Erro ao gerar.\n");
@@ -483,13 +498,13 @@ void printDendogram(int total_individuos)
     for(i=0; i< total_individuos; i++)
     {
         if (g_tree[i].left >= 0 && g_tree[i].right >= 0)
-            fprintf(dendogram, "%f  %f          %f\n", g_tree[i].left+1, g_tree[i].right+1, g_tree[i].distance);
+            fprintf(dendogram, "%d  %d          %f\n", g_tree[i].left+1, g_tree[i].right+1, g_tree[i].distance);
         if (g_tree[i].left >= 0 && g_tree[i].right < 0)
-            fprintf(dendogram, "%f  %f          %f\n", g_tree[i].left+1, (-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
+            fprintf(dendogram, "%d  %d          %f\n", g_tree[i].left+1, (-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
         if (g_tree[i].left < 0 && g_tree[i].right >= 0)
-            fprintf(dendogram, "%f  %f          %f\n", (-1*g_tree[i].left)+total_individuos, g_tree[i].right+1, g_tree[i].distance);
+            fprintf(dendogram, "%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos, g_tree[i].right+1, g_tree[i].distance);
         if (g_tree[i].left < 0 && g_tree[i].right < 0)
-            fprintf(dendogram, "%f  %f          %f\n", (-1*g_tree[i].left)+total_individuos,(-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
+            fprintf(dendogram, "%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos,(-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
     }
     fclose(dendogram);
 }
@@ -537,23 +552,24 @@ double distancia_euclidiana(t_individuo pop[], int total_individuos)
     }
 
     //imprimir_populacao(pop, total_individuos);
+    //sleep(2);
     for (i = 0; i < total_individuos; ++i)
     {
+        distances[i][i] = 0;
         for (j = i+1; j < total_individuos; ++j)
         {        
-            for (k = i; k < NVARS; ++k)
+            for (k = 0; k < NVARS; ++k)
             {
-                //printf("GENE: %f \nCLUSTER: %f\n", pop[i].gene[k], clusterCenter[j][k]);
-                //media += euclidiana(pop[i].gene[k], pop[i].gene[k]);
                 media += pow(fabs(pop[i].gene[k] - pop[j].gene[k]), 2.0);
-                //printf("k = %d\n", k);
             }
+
             // printf("j = %d\n", j);
             // printf("i = %d\n", i);
-            // printf("media = %f\n", media);
+            //printf("media = %f\n", media);
             distances[i][j] = sqrt(media);
             //printf("sqrt(media) = %f\n", sqrt(media));
             distances[j][i] = distances[i][j];
+            //printf("distances[%d][%d] = %f\n",j, i, distances[j][i]);
             //printf("passou\n");
             if (euclid_max < distances[i][j])
             {
@@ -570,6 +586,13 @@ double distancia_euclidiana(t_individuo pop[], int total_individuos)
             distances[j][i] = distances[i][j];
         }
     }
+    // for (i = 0; i < total_individuos; ++i)
+    // {
+    //     for (j = i+1; j < total_individuos; ++j)
+    //     {
+    //         printf("distances[%d][%d] = %f\n",j, i, distances[j][i]);
+    //     }
+    // }
 }
 
 double find_minimum_value(double a[], int n) 
@@ -1048,6 +1071,7 @@ void executar(int funcao, int total_individuos, int geracoes){
         }
         printf("%d\n", run);
         fprintf(fp, "-------------------------------");    
+        sleep(10);
     }
     gettimeofday(&timevalB,NULL);
 

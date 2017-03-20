@@ -9,9 +9,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <windows.h>
+//#include <windows.h>
 #include <assert.h>
 #include <float.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "./src-clstr/cluster.h" 
 #include "funcoes_benchmark.h"
@@ -667,8 +669,9 @@ void clusterAnalysis(t_individuo populacao[], double clusterRadius, int total_in
         //printf("\n");
     }
     */
-
+    imprimir_populacao(populacao, total_individuos);
     int *c = k_means(populacao, total_individuos, NVARS, numberOfClusters, 0.0001, 0);
+    sleep(3);
 
     for (i = 0; i < total_individuos; ++i)
     {

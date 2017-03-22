@@ -1,9 +1,9 @@
-/******************************************************************************************************************
-*                                   Algoritmo desenvolvido para o TCC                                             *
-*  para compilar:  gcc ag.c -lm -o main principal.c funcoes_benchmark.c gerador_numeros.c ./src-clstr/cluster.c   *
-*                                                                                                                 *
-*                                                                                                                 *
-******************************************************************************************************************/
+/*********************************************************************************************************************
+*                                   Algoritmo desenvolvido para o TCC                                                *
+*  para compilar:  gcc ag.c -lm -o main principal.c funcoes_benchmark.c gerador_numeros.c ./src-clstr/cluster.c -O3  *
+*                                                                                                                    *
+*                                                                                                                    *
+*********************************************************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -669,9 +669,9 @@ void clusterAnalysis(t_individuo populacao[], double clusterRadius, int total_in
         //printf("\n");
     }
     */
-    imprimir_populacao(populacao, total_individuos);
+    //imprimir_populacao(populacao, total_individuos);
     int *c = k_means(populacao, total_individuos, NVARS, numberOfClusters, 0.0001, 0);
-    sleep(3);
+    //sleep(3);
 
     for (i = 0; i < total_individuos; ++i)
     {
@@ -953,7 +953,6 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
  *  - o codigo (ou ID) da funcao a ser otimizada
  *  - o tamanho da populacao (ou total de individuos "total_individuos" da populacao)
  *  - por quantas "geracoes" a populacao inicial sera evoluida
- *  - a probabilidade de mutacao (prob_mutacao)
  */
 void executar(int funcao, int total_individuos, int geracoes, double prob_mutacao){
     srand((unsigned)time(NULL)); 

@@ -1,9 +1,9 @@
-/******************************************************************************************************************
-*                                   Algoritmo desenvolvido para o TCC                                             *
-*  para compilar:  gcc agNEW.c -lm -o main principal.c funcoes_benchmark.c gerador_numeros.c ./src-clstr/cluster.c   *
-*                                                                                                                 *
-*                                                                                                                 *
-******************************************************************************************************************/
+/*********************************************************************************************************************
+*                                   Algoritmo desenvolvido para o TCC                                                *
+*  para compilar:  gcc ag.c -lm -o main principal.c funcoes_benchmark.c gerador_numeros.c ./src-clstr/cluster.c -O3  *
+*                                                                                                                    *
+*                                                                                                                    *
+*********************************************************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,9 +11,10 @@
 #include <math.h>
 //#include <windows.h>
 #include <assert.h>
-#include <string.h>
 #include <float.h>
+#include <string.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include "./src-clstr/cluster.h" 
 #include "funcoes_benchmark.h"
@@ -21,13 +22,8 @@
 
 #define TAM_TORNEIO 5
 #define RUNS 10
-#define MINVAL 0.01 
-#define MAXVAL 0.99 
-
 
 double m_nmdf = 0;
-double **distances;
-Node * g_tree;
 
 /*
  * A estrutura (struct) "t_individuo" representa um unico individuo da populacao
@@ -209,7 +205,6 @@ void imprimir_populacao(t_individuo populacao[], int total_individuos){
         
         //printf("fitness: %d\n\n",obter_numero_uniforme_discreto(0,4)); //4 inclusive
     }
-    printf("\n----------------------------------\n");
 }
 
 /*
@@ -236,8 +231,7 @@ void gerar_populacao_inicial(t_individuo populacao[], int total_individuos, int 
         //printf("\n");
         populacao[i].fitness = obter_fitness(funcao, populacao[i].gene);      
     }
-    imprimir_populacao(populacao, total_individuos);
-    sleep(10);
+    
 }
 
 void gerar_individuo(t_individuo individuo, int funcao)
@@ -246,7 +240,7 @@ void gerar_individuo(t_individuo individuo, int funcao)
     float l_sup = 0.0;
     identificar_dominio(funcao,&l_inf,&l_sup);
 
-    int i, j;
+    int j;
     for(j = 0; j < NVARS; j++)
     {
         individuo.gene[j] =  obter_numero_uniforme_continuo(l_inf,l_sup);
@@ -351,18 +345,7 @@ void selecao_aleatoria(t_individuo populacao[], int total_individuos, t_individu
     *sorteio = populacao[obter_numero_uniforme_discreto(0,total_individuos-1)];
 }
 
-/*
-apenas atualizar o vetor de população com os novos individuos gerador a partir de crossover e mutação
-*/
-void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, t_individuo novos_individuos[], int comecar){
-    int i = 0;
-    int j = 0;
-    for(i = comecar; i < total_individuos + comecar; i++){
-        populacao[i] = novos_individuos[j];
-        j++;
-    }
 
-}
 /*
 double diversity_population(t_individuo pop[], int tamPopulation)
 {
@@ -434,86 +417,145 @@ double diversity_population(t_individuo pop[], int tamPopulation)
 }
 
 
+/****
+** kmeans.c
+** - a simple k-means clustering routine
+** - returns the cluster labels of the data points in an array
+** - here's an example
+**   extern int *k_means(double**, int, int, int, double, double**);
+**   ...
+**   int *c = k_means(data_points, num_points, dim, 20, 1e-4, 0);
+**   for (i = 0; i < num_points; i++) {
+**      printf("data point %d is in cluster %d\n", i, c[i]);
+**   }
+**   ...
+**   free(c);
+** Parameters
+** - array of data points (double **data)
+** - number of data points (int n)
+** - dimension (int m)
+** - desired number of clusters (int k)
+** - error tolerance (double t)
+**   - used as the stopping criterion, i.e. when the sum of
+**     squared euclidean distance (standard error for k-means)
+**     of an iteration is within the tolerable range from that
+**     of the previous iteration, the clusters are considered
+**     "stable", and the function returns
+**   - a suggested value would be 0.0001
+** - output address for the final centroids (double **centroids)
+**   - user must make sure the memory is properly allocated, or
+**     pass the null pointer if not interested in the centroids
+** References
+** - J. MacQueen, "Some methods for classification and analysis
+**   of multivariate observations", Fifth Berkeley Symposium on
+**   Math Statistics and Probability, 281-297, 1967.
+** - I.S. Dhillon and D.S. Modha, "A data-clustering algorithm
+**   on distributed memory multiprocessors",
+**   Large-Scale Parallel Data Mining, 245-260, 1999.
+** Notes
+** - this function is provided as is with no warranty.
+** - the author is not responsible for any damage caused
+**   either directly or indirectly by using this function.
+** - anybody is free to do whatever he/she wants with this
+**   function as long as this header section is preserved.
+** Created on 2005-04-12 by
+** - Roger Zhang (rogerz@cs.dal.ca)
+** Modifications
+** -
+** Last compiled under Linux with gcc-3
+*/
 
-/**************************************************************************
-        ALGORITMO DE CLUSTERIZAÇÃO - SINGLE LINK
-**************************************************************************/
 
-void singlelink(int total_individuos, int dimensions)
+
+int *k_means(t_individuo data[], int n, int m, int k, double t, double **centroids)
 {
-    double maxrange;
-    double minrange;
-    unsigned short int i = 0, j=0;
+    /* output cluster label for each data point */
+    int *labels = (int*)calloc(n, sizeof(int));
 
-    // for (i = 0; i < total_individuos; ++i)
-    // {
-    //     for (j = 0; j < total_individuos; ++j)
-    //     {
-    //         printf("distances[%d][%d] = %f\n",i, j, distances[i][j]);
-    //     }
-    // }
+    int h, i, j; /* loop counters, of course :) */
+    int *counts = (int*)calloc(k, sizeof(int)); /* size of each cluster */
+    double old_error, error = DBL_MAX; /* sum of squared euclidean distance */
+    double **c = centroids ? centroids : (double**)calloc(k, sizeof(double*));
+    double **c1 = (double**)calloc(k, sizeof(double*)); /* temp centroids */
 
-    g_tree = treecluster(total_individuos, total_individuos, 0, 0, 0, 0, 'e', 's', distances);
-    
-    // for (i = 0; i < total_individuos; i++)
-    // {
-    //     printf("gtree[%d] = %f \n\n-------------------------\n\n", i, g_tree[i].distance);
-    // }
+    //assert(data && k > 0 && k <= n && m > 0 && t >= 0); /* for debugging */
 
-    if(!g_tree)
+    /****
+    ** initialization */
+
+    for (h = i = 0; i < k; h += n / k, i++) 
     {
-        printf("Erro ao gerar.\n");
-        return;
-    }
-
-    maxrange = -1;
-    for (i = 0; i < total_individuos;i++)
-    {
-        if (maxrange < g_tree[i].distance)
+        c1[i] = (double*)calloc(m, sizeof(double));
+        if (!centroids)
         {
-            maxrange = g_tree[i].distance;
+         c[i] = (double*)calloc(m, sizeof(double));
         }
+        /* pick k points as initial centroids */
+        for (j = m; j-- > 0; c[i][j] = data[h].gene[j]);
     }
-    minrange = maxrange;
-    for (i = 0; i < total_individuos; i++)
-    {
-        if (minrange > g_tree[i].distance)
+
+    /****
+    ** main loop */
+
+    do {
+        /* save error from last step */
+        old_error = error, error = 0;
+
+        /* clear old counts and temp centroids */
+        for (i = 0; i < k; counts[i++] = 0) {
+            for (j = 0; j < m; c1[i][j++] = 0);
+        }
+
+        for (h = 0; h < n; h++) 
         {
-            minrange = g_tree[i].distance;
+            /* identify the closest cluster */
+            double min_distance = DBL_MAX;
+            for (i = 0; i < k; i++) 
+            {
+                double distance = 0;
+                for (j = m; j-- > 0; distance += pow(data[h].gene[j] - c[i][j], 2));
+                if (distance < min_distance) 
+                {
+                    labels[h] = i;
+                    min_distance = distance;
+                }
+            }
+            /* update size and temp centroid of the destination cluster */
+            for (j = m; j-- > 0; c1[labels[h]][j] += data[h].gene[j]);
+            counts[labels[h]]++;
+            /* update standard error */
+            error += min_distance;
         }
+
+        for (i = 0; i < k; i++)
+        { /* update all centroids */
+            for (j = 0; j < m; j++) 
+            {
+                c[i][j] = counts[i] ? c1[i][j] / counts[i] : c1[i][j];
+            }
+        }
+
+    } while (fabs(error - old_error) > t);
+
+    /****
+    ** housekeeping */
+
+    for (i = 0; i < k; i++) {
+        if (!centroids) {
+            free(c[i]);
+        }
+        free(c1[i]);
     }
 
-    for (i = 0 ;i < total_individuos;i++)
-    {
-            g_tree[i].distance=(MAXVAL-MINVAL)/(double)(maxrange-minrange)*g_tree[i].distance-(MAXVAL-MINVAL)/(double)(maxrange-minrange)*minrange+MINVAL;
+    if (!centroids) {
+        free(c);
     }
-    
+    free(c1);
+
+    free(counts);
+
+    return labels;
 }
-
-void printDendogram(int total_individuos)
-{
-    unsigned short int i=0;
-    FILE *dendogram;
-    dendogram = fopen("dendogram.txt", "w+");
-
-    for(i=0; i< total_individuos; i++)
-    {
-        if (g_tree[i].left >= 0 && g_tree[i].right >= 0)
-            fprintf(dendogram, "%d  %d          %f\n", g_tree[i].left+1, g_tree[i].right+1, g_tree[i].distance);
-        if (g_tree[i].left >= 0 && g_tree[i].right < 0)
-            fprintf(dendogram, "%d  %d          %f\n", g_tree[i].left+1, (-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
-        if (g_tree[i].left < 0 && g_tree[i].right >= 0)
-            fprintf(dendogram, "%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos, g_tree[i].right+1, g_tree[i].distance);
-        if (g_tree[i].left < 0 && g_tree[i].right < 0)
-            fprintf(dendogram, "%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos,(-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
-    }
-    fclose(dendogram);
-}
-
-
-/**************************************************************************
-        FIM ALGORITMO DE CLUSTERIZAÇÃO - SINGLE LINK
-**************************************************************************/
 
 double sum_array(t_individuo pop[], int num_elements)
 {
@@ -533,67 +575,31 @@ double euclidiana(double ind1, double ind2)
     for (i = 0; i < NVARS; ++i)
     {
         soma += pow((ind1 - ind2),2);
-    }
+   }
    return sqrt(soma);
 }
 
-double distancia_euclidiana(t_individuo pop[], int total_individuos)
+double distancia_euclidiana(t_individuo pop[], int total_individuos, double clusterCenter[total_individuos][NVARS], int numberOfClusters)
 {
     double media = 0.0;
     double aux = 0;
-    double euclid_max = 0;
-    double temp = 0;
     int i, j, k;
-    unsigned short int a = 0;
-
-    distances = (double**) malloc(total_individuos*sizeof(double*));
-    for(a = 0; a < total_individuos+1; a++)
-    {
-        distances[a] = (double*) malloc(total_individuos*sizeof(double));
-    }
 
     //imprimir_populacao(pop, total_individuos);
-    //sleep(2);
     for (i = 0; i < total_individuos; ++i)
     {
-        distances[i][i] = 0;
-        for (j = i+1; j < total_individuos; ++j)
-        {        
+        for (j = 0; j < numberOfClusters; ++j)
+        {
             for (k = 0; k < NVARS; ++k)
             {
-                media += pow(fabs(pop[i].gene[k] - pop[j].gene[k]), 2.0);
+                //printf("GENE: %f \nCLUSTER: %f\n", pop[i].gene[k], clusterCenter[j][k]);
+                media += euclidiana(pop[i].gene[k], clusterCenter[j][k]);
             }
-
-            // printf("j = %d\n", j);
-            // printf("i = %d\n", i);
-            //printf("media = %f\n", media);
-            distances[i][j] = sqrt(media);
-            //printf("sqrt(media) = %f\n", sqrt(media));
-            distances[j][i] = distances[i][j];
-            //printf("distances[%d][%d] = %f\n",j, i, distances[j][i]);
-            //printf("passou\n");
-            if (euclid_max < distances[i][j])
-            {
-                euclid_max = distances[i][j];
-            }
-            media = 0.0;
+            aux+=1;            
         }
     }
-    for(i = 0; i < total_individuos; i++)
-    {
-        for(j = i +1; j < total_individuos; j++)
-        {
-            distances[i][j] = distances[i][j] / euclid_max;
-            distances[j][i] = distances[i][j];
-        }
-    }
-    // for (i = 0; i < total_individuos; ++i)
-    // {
-    //     for (j = i+1; j < total_individuos; ++j)
-    //     {
-    //         printf("distances[%d][%d] = %f\n",j, i, distances[j][i]);
-    //     }
-    // }
+    //printf("%f\n", media/aux);
+    return media/aux;
 }
 
 double find_minimum_value(double a[], int n) 
@@ -602,11 +608,9 @@ double find_minimum_value(double a[], int n)
     double min;
 
     min = a[0];
-    int index = 0;
     //printf("%f\n", min);
     for (c = 1; c < n; c++) {
         if (a[c] < min) {
-            index = c;
             min = a[c];
         }
     }
@@ -632,63 +636,17 @@ int find_minimum_index(double a[], int n)
 
 
 
-void clusterAnalysis(t_individuo populacao[], double clusterRadius, int total_individuos, double *clusterID, double *distanceFromCenter, double clusterCenter[total_individuos][NVARS], int numberOfClusters)
+void clusterAnalysis(t_individuo populacao[], int total_individuos, double *clusterID, int numberOfClusters)
 {   
-    int numberOfChromosomes = NVARS;
-    int count, index = 0;
-    double EuclideanDistance[numberOfClusters];
-    double aux, media, min = 0.0;
-    double Y;
-    int i,j, k;
+    int i;
 
-    /*
+    int *c = k_means(populacao, total_individuos, NVARS, numberOfClusters, 0.0001, 0);
+
     for (i = 0; i < total_individuos; ++i)
     {
-        for (j = 0; j < NVARS; ++j)
-        {
-            //clusterCenter[i][j] = obter_numero_uniforme();
-            clusterCenter[i][j] = ((float)rand()/(float)RAND_MAX)*(1.0f-clusterRadius+(clusterRadius*0.5f));
-            //printf("%f  ", clusterCenter[i][j]);
-        }
-        //printf("\n");
+        populacao[i].index = c[i];
+        clusterID[i] = c[i];
     }
-    */
-    distancia_euclidiana(populacao, total_individuos);
-    singlelink(total_individuos, NVARS);
-    printDendogram(total_individuos);
-    //int *c = k_means(populacao, total_individuos, NVARS, numberOfClusters, 0.0001, 0);
-
-    for (i = 0; i < total_individuos; ++i)
-    {
-        populacao[i].index = g_tree[i].distance;
-        clusterID[i] = g_tree[i].distance;
-    }
-
-    /*
-    for (i = 0; i < total_individuos; ++i)
-    {
-        media = 0.0;
-        aux = 0.0;
-        for (j = 0; j < numberOfClusters; ++j)
-        {
-            for (k = 0; k < NVARS; ++k)
-            {
-                //printf("GENE: %f \nCLUSTER: %f\n", pop[i].gene[k], clusterCenter[j][k]);
-                media += euclidiana(populacao[i].gene[k], clusterCenter[j][k]);
-            }
-            aux+=1;
-            EuclideanDistance[j] = media/aux;
-            //printf("J:%d  %f\n",j, EuclideanDistance[j]);
-        }
-        min = find_minimum_value(EuclideanDistance, numberOfClusters);
-        index = find_minimum_index(EuclideanDistance, numberOfClusters);
-        //printf("%f\n", min);
-        populacao[i].index = index;
-        clusterID[i] = index;
-        populacao[i].distanceFromCenter = min;
-        distanceFromCenter[i] = min;
-    } 
-    */
 }
 
 void shuffle(int *array, int n)
@@ -723,12 +681,22 @@ double find_maximum(double a[], int n)
     return index;
 }
 
-void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double *distanceFromCenter, double killIndex, int funcao, int total_individuos, 
-    double prob_mutacao, int *comecar, t_individuo populacao_aux[], t_individuo melhores[])
+/*
+apenas atualizar o vetor de população com os novos individuos gerador a partir de crossover e mutação
+*/
+void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, t_individuo novos_individuos[], int comecar){
+    int i = 0;
+    int j = 0;
+    for(i = comecar; i < total_individuos + comecar; i++){
+        populacao[i] = novos_individuos[j];
+        j++;
+    }
+}
+
+void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_individuos, double prob_mutacao, 
+    int *comecar, t_individuo populacao_aux[], t_individuo melhores[])
 {
-    double distanceMatrix[total_individuos];
     int numberOfChromosomes = 0;
-    double u;
     int flag = 0, cont = 0, cont2 = 0;
     t_individuo pai;
     t_individuo mae;
@@ -745,21 +713,22 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
                 pop_aux[aux].gene[j] = populacao[i].gene[j];
                 pop_aux[aux].fitness = populacao[i].fitness;
             }
-            distanceMatrix[aux] = distanceFromCenter[i];
             aux++;
             numberOfChromosomes++;
         }
-    }  
+    }
 
-    //printf("%d\n", numberOfChromosomes);
-
-    double percentageChromosomesToCrossover = 0.7;
+    double percentageChromosomesToCrossover = 0.8;
     int totalChromosomesToCrossover = round(percentageChromosomesToCrossover * numberOfChromosomes);
 
     int vetor_aux[numberOfChromosomes];
     int vetor_pai[numberOfChromosomes];
-    int vetor_naopai[numberOfChromosomes - totalChromosomesToCrossover];
     t_individuo novos_individuos[aux];
+
+    // if (totalChromosomesToCrossover == 0)
+    // {
+    //     return;
+    // }
 
     for (i = 0; i < numberOfChromosomes; ++i)
     {
@@ -767,19 +736,15 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
     }
 
     shuffle(vetor_aux, numberOfChromosomes);
-    //printf("Total de individuos: %d  & Total de pais: %d\n", numberOfChromosomes, totalChromosomesToCrossover);
 
     for (i = 0; i < totalChromosomesToCrossover; ++i)
     {
         vetor_pai[i] = vetor_aux[i];
         cont2++;
-        //printf("VETOR DE PAIS: %d  %d\n", vetor_pai[i], i);
     }
-    //printf("\n\n");
     for (i = cont2; i < numberOfChromosomes; ++i)
     {
         vetor_pai[i] = vetor_aux[i];
-        //printf("VETOR DE NAO PAIS: %d  %d\n", vetor_pai[i], i);
     }
 
     if (totalChromosomesToCrossover%2 == 1 && totalChromosomesToCrossover > 2)
@@ -798,12 +763,7 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
         {      
             pai = pop_aux[vetor_pai[i]];
             mae = pop_aux[vetor_pai[i+1]];
-            //u = obter_numero_uniforme();
-            //if (u < 0.9)
-            //{
-                //printf("%f\n", u);
             op_crossover(&pai, &mae, funcao);
-            //}
             op_mutacao(&pai,prob_mutacao,funcao);
             op_mutacao(&mae,prob_mutacao,funcao);
             novos_individuos[i] = pai;
@@ -816,10 +776,7 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
     if (flag == 1)
     {
         novos_individuos[cont] = pop_aux[vetor_pai[totalChromosomesToCrossover]];
-        //op_selecao_de_sobreviventes(populacao_aux, totalChromosomesToCrossover+1, novos_individuos, *comecar);
         totalChromosomesToCrossover++;
-        //*comecar += totalChromosomesToCrossover;
-        //int flag = 0;
     }
 
     for (i = cont2; i < numberOfChromosomes; ++i)
@@ -834,13 +791,7 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
     if(numberOfChromosomes != 0){
         encontra_melhor_individuo(novos_individuos, numberOfChromosomes, &melhor);
         melhores[alvo] = melhor;    
-    }/*
-    else
-    {
-        gerar_individuo(melhor, funcao);
-        imprimir_individuo(melhor);
-        melhores[alvo] = melhor;
-    }*/
+    }
 }
 
 void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double prob_mutacao)
@@ -860,11 +811,7 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
     {
         pai = melhores[i];
         mae = melhores[i+1];
-        //u = obter_numero_uniforme();
-        //if (u < 0.9)
-        //{
         op_crossover(&pai, &mae, funcao);
-        //}
         op_mutacao(&pai,prob_mutacao,funcao);
         op_mutacao(&mae,prob_mutacao,funcao);
         novos_individuos[i] = pai;
@@ -879,8 +826,6 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
         maxClusters++;
     }
 
-    //imprimir_populacao(novos_individuos, maxClusters);
-
     op_selecao_de_sobreviventes(melhores, maxClusters, novos_individuos, 0);
 }
 
@@ -888,7 +833,6 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
 {
     int i;
     t_individuo novos_individuos[total_individuos];
-    t_individuo pop_aux[total_individuos + maxClusters];
     int vetor_aux[total_individuos + maxClusters];
     int vetor_pai[total_individuos + maxClusters];
     t_individuo mutado;
@@ -925,6 +869,7 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
     }
     //imprimir_populacao(novos_individuos, total_individuos);
     op_selecao_de_sobreviventes(populacao, total_individuos, novos_individuos, 0);
+    //imprimir_populacao(populacao, total_individuos);
 }
 
 
@@ -938,16 +883,15 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
  *  - o codigo (ou ID) da funcao a ser otimizada
  *  - o tamanho da populacao (ou total de individuos "total_individuos" da populacao)
  *  - por quantas "geracoes" a populacao inicial sera evoluida
- *  - a probabilidade de mutacao (prob_mutacao)
  */
-void executar(int funcao, int total_individuos, int geracoes){
+void executar(int funcao, int total_individuos, int geracoes, double prob_mutacao){
     srand((unsigned)time(NULL)); 
-
+    double vet_melhores[RUNS][geracoes];
+    double vet_diversidade[RUNS][geracoes];
     int run;
     int i;
     int j;
-    double vet_melhores[RUNS][geracoes];
-    double vet_diversidade[RUNS][geracoes];
+
     struct timeval timevalA;
     struct timeval timevalB;
 
@@ -962,17 +906,8 @@ void executar(int funcao, int total_individuos, int geracoes){
     gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)
     {
-        double startingClusterRadius = 0.3;
-        double minimumClusterRadiusThreshold = 0.1;
-        double clusterRadius = startingClusterRadius;
-        double numberOfLessThan2 = 0;
-        double numberOfGreaterThan6 = 0;
-        double firstnessIndex = 2;
-        double killIndex = firstnessIndex + 1;
-        int populationOverFlowFlag = 0;
-        double stagnationCounter = 0;
-        double averageMinimumValue = 0;
-        int maxClusters = 2; 
+
+        int maxClusters = 2;
         int flagCluster = 0;
         double prob_mutacao = 0.2;
         double minMutationRate = 0.002;
@@ -982,19 +917,13 @@ void executar(int funcao, int total_individuos, int geracoes){
          * A Populacao e representada como um vetor de "t_individuo", cujo o tamanho e "total_individuos" (definido previamente pelo usuario).
          */
         t_individuo populacao[total_individuos];
-        t_individuo pop_teste[total_individuos];
         
         gerar_populacao_inicial(populacao, total_individuos, funcao);
 
         int g = 0; //contador de geracoes
-        int j = 0, i, k;
+        int i = 0;
         for(g = 0; g < geracoes; g++){
-            double *newClusterData;
-            double *newClusterDataFitness;
-            double *ideals;
             double clusterID[total_individuos];
-            double clusterCenter[total_individuos][NVARS];
-            double distanceFromCenter[total_individuos];
             int comecar = 0;
 
             
@@ -1015,7 +944,6 @@ void executar(int funcao, int total_individuos, int geracoes){
             {
                 flagCluster = 0;
             }
-            //printf("%d\n", maxClusters);
 
             t_individuo populacao_aux[total_individuos];
             t_individuo melhores[maxClusters];
@@ -1023,44 +951,30 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            /*
-            int *c = k_means(populacao, total_individuos, NVARS, 6, 0.0001, 0);
-            for (i = 0; i < total_individuos; ++i)
-            {
-                printf("data point %d is in cluster %d\n", i, c[i]);
-            }   
-            */
-
-            clusterAnalysis(populacao, clusterRadius, total_individuos, clusterID, distanceFromCenter, clusterCenter, maxClusters);
-
-            
+            clusterAnalysis(populacao, total_individuos, clusterID, maxClusters);
 
             for (i = 0; i < maxClusters; ++i)
             {
-                improveCluster(populacao, clusterID, i, distanceFromCenter, killIndex, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores);
+                
+                improveCluster(populacao, i, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores);
+
             }
 
             improveIdeals(melhores, maxClusters, funcao, prob_mutacao);   
 
             memcpy(populacao, populacao_aux, sizeof(t_individuo)*total_individuos);
 
-
             generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao);
+            
 
             double diversidade = diversity_population(populacao, total_individuos);
-
-            //imprimir_populacao(populacao, total_individuos);
-            //mergeSort(populacao, total_individuos);
-            //imprimir_populacao(populacao, total_individuos);
 
             populacao[total_individuos-1] = best;
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
-            // Saida de Dados
+
             fprintf(fp, "%d %f %f\n", g, best.fitness, diversidade);
-            //printf("%d\t%f  ",g,best.fitness); //saida de dados
-            //printf("  %f\n", diversidade);
-            //printf("%lf\n", prob_mutacao);
+
             prob_mutacao -= 0.001;
 
             if (prob_mutacao <= minMutationRate)
@@ -1070,9 +984,12 @@ void executar(int funcao, int total_individuos, int geracoes){
             vet_melhores[run][g] = best.fitness;
             vet_diversidade[run][g] = diversidade;
         }
+
+        {
+            /* code */
+        }
         printf("%d\n", run);
-        //fprintf(fp, "-------------------------------");    
-        //sleep(10);
+        fprintf(fp, "-------------------------------");    
     }
     gettimeofday(&timevalB,NULL);
 

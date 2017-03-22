@@ -20,7 +20,7 @@ void menu(){
     int funcao = 0;
     int total_individuos = 0;
     int geracoes = 0;
-    double prob_mutacao = 0.0;
+    //double prob_mutacao = 0.0;
 
     printf("\n\nAlgoritmos Geneticos\n");
     printf("========== =========\n\n");

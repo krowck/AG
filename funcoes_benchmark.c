@@ -12,13 +12,10 @@ double aux, aux1;
  *
  *
  * Para cada funcao de benchmark, temos a implementacao de duas funcoes computacionais:
- *  i) uma funcao (em C) que retorna um valor de uma determinada funcao de benchmark, dados x1 e x2;
+ *  i) uma funcao (em C) que retorna um valor de uma determinada funcao de benchmark
  *  ii) uma funcao (em C) que "retorna" o limite dos valores de dominio (utilizando passagem de parametro por referencia)
  */
 
-/*
- * Retorna um valor (do tipo float) referente a funcao RASTRIGIN, dado duas entrada, x1 e x2(tambem do tipo float)
- */
 float rastrigin(double cromossomo[]){
     obj = 0;
     int j;
@@ -46,7 +43,6 @@ float quadratic(double cromossomo[]){
 float rosenbrock(double cromossomo[])
 {
 	obj = 0;
-	int j;
 	obj = (100 * pow((cromossomo[1] - pow(cromossomo[0], 2) ),2) ) + pow((1 - cromossomo[0]),2);
 	return obj;
 }
@@ -76,6 +72,7 @@ float ackley(double cromossomo[])
 	{
 		aux1 += cos(2.0*PI*cromossomo[i]);
 	}
+
 	obj =  (-20.0*(exp(-0.2*sqrt(1.0/(float)NVARS*aux)))-exp(1.0/(float)NVARS*aux1)+20.0+exp(1));
 
 	return obj;
@@ -166,13 +163,13 @@ void d_griewank(float d[])
 
 void d_powell(float d[])
 {
-	d[0] = -4;
-	d[1] = 5;
+	d[0] = -4.0;
+	d[1] = 5.0;
 }
 
 void d_zakharov(float d[])
 {
-	d[0] = -5;
-	d[1] = 10;
+	d[0] = -5.0;
+	d[1] = 10.0;
 }	
 

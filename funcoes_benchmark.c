@@ -3,7 +3,7 @@
 
 #define PI 3.14159265359
 
-#define NVARS 20
+#define NVARS 50
 
 double obj;
 double aux, aux1;
@@ -42,8 +42,12 @@ float quadratic(double cromossomo[]){
 
 float rosenbrock(double cromossomo[])
 {
+	int i;
 	obj = 0;
-	obj = (100 * pow((cromossomo[1] - pow(cromossomo[0], 2) ),2) ) + pow((1 - cromossomo[0]),2);
+	for (i = 0; i < NVARS-1; i++)
+        {
+        	obj=obj+100.*pow((cromossomo[i+1] - pow(cromossomo[i],2.)),2) + pow((cromossomo[i] - 1.),2);
+        }
 	return obj;
 }
 
@@ -53,9 +57,9 @@ float schwefel(double cromossomo[])
 	int j;
 	for (j = 0; j < NVARS; ++j)
 	{
-		obj += (-(cromossomo[j])) * sin(sqrt(fabs(cromossomo[j])));
+		obj += ((cromossomo[j])) * sin(sqrt(fabs(cromossomo[j])));
 	}
-	return obj;
+	return 418.9829*NVARS - obj;
 }
 
 float ackley(double cromossomo[])

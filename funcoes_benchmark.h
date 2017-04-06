@@ -1,6 +1,6 @@
 #define PI 3.14159265359
 
-#define NVARS 50
+#define NVARS 10
 
 /*
  * Este arquivo - "funcoes_bechmark.h" - contem apenas prototipos de funcoes.

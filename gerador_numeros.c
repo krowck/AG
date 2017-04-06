@@ -45,3 +45,8 @@ int obter_numero_uniforme_discreto(float l_inf, float l_sup){
     
     return l_inf + (int)((l_sup - l_inf + 1.0) * u);
 }
+
+int nextInt(int n)
+{
+	return (int) ((double)0.0 + ((n - 0.0)*rand()/(RAND_MAX+1.0)));
+}

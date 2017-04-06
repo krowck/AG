@@ -877,7 +877,7 @@ int verify_ALL(t_individuo pop[], int total_individuos, int controle)
     return 0;
 }
 
-void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int total_individuos, int maxClusters, double prob_mutacao, int funcao, int *vetor_flag)
+void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int total_individuos, int maxClusters, double prob_mutacao, int funcao)
 {
     int i, j;
     t_individuo novos_individuos[total_individuos];
@@ -1032,7 +1032,7 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
 
             memcpy(populacao, populacao_aux, sizeof(t_individuo)*total_individuos);
 
-            generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao, vetor_flag);
+            generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao);
 
             double diversidade = diversity_population(populacao, total_individuos);
 

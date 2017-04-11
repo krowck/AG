@@ -576,11 +576,13 @@ void clusterAnalysis(t_individuo populacao[], double clusterRadius, int total_in
     int i, j, k;
     double **distancia;
 
-    
+    initHabitats(total_individuos);
     distancia = distancia_euclidiana(populacao, total_individuos);
     singlelink(total_individuos, NVARS, distancia);
     printDendogram(total_individuos);
     buildHabitats(total_individuos, distancia);
+
+    printPairwiseInteractions(total_individuos);
     for (i = 0; i < total_individuos; ++i)
     {
         populacao[i].index = g_tree[i].distance;

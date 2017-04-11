@@ -15,6 +15,9 @@ struct habitat {
     int *h_ind;
 } *H;
 
+int * ind_int;
+int ** ind_adj;
+
 unsigned short int g_habitatsSize = 0;
 Node * g_tree;
 
@@ -27,6 +30,13 @@ void initHabitats(int total_individuos)
     {
         H[a].h_ind_count = 0; 
         H[a].h_ind = (int*)malloc (sizeof(int)*total_individuos );
+    }
+
+    ind_int = (int*) malloc (total_individuos * sizeof(int));
+    ind_adj = (int**)malloc (total_individuos * sizeof(int*));
+    for (a = 0; a < total_individuos; a++)
+    {
+        ind_adj[a] = (int*)malloc (total_individuos * sizeof(int));
     }
 }
 
@@ -116,6 +126,7 @@ void buildHabitats(int total_individuos, double** distances)
     double dist_aux = 0.0;
 
     g_habitatsSize = 0;
+
 
     for (i = 0; i < total_individuos; i++)
     {
@@ -259,9 +270,80 @@ void buildHabitats(int total_individuos, double** distances)
         }
     }
     g_habitatsSize++;
+
+    for (i = 0; i < total_individuos; i++)
+    {
+        ind_int[i] = 0;
+        for (j = 0; j < total_individuos; j++)
+        {
+            ind_adj[i][j] = -1;
+        }
+    }
     
+    for ( i = 0; i < g_habitatsSize; i++)
+    {
+        if (H[i].h_ind_count == 1)
+        {
+            //update nothing
+        }else if ((H[i].h_ind_count == 2))
+        {
+                ind_adj[ H[i].h_ind[0] ][0] = H[i].h_ind[1];
+                ind_int[H[i].h_ind[0]]++;
+
+                ind_adj[ H[i].h_ind[1] ][0] = H[i].h_ind[0];
+                ind_int[H[i].h_ind[1]]++;
+        }
+        else
+        {
+            for (j=0;j<H[i].h_ind_count;j++)
+            {
+                k = nextInt(H[i].h_ind_count);
+                while (ind_int[H[i].h_ind[j]] == 0)
+                {
+                    if (distances[ H[i].h_ind[j] ][ H[i].h_ind[k] ] == 1.0)//give a small chance to choose
+                    {
+                        dist_aux = 0.99;
+                    }
+                    else
+                    {
+                        dist_aux = distances[ H[i].h_ind[j] ][ H[i].h_ind[k] ];
+                    }
+
+                    if ( (j != k) && obter_numero_uniforme() >= dist_aux) 
+                    {
+                        ind_adj[ H[i].h_ind[j] ][ind_int[H[i].h_ind[j]]] = H[i].h_ind[k];
+                        ind_int[H[i].h_ind[j]]++;
+                        k = H[i].h_ind_count;
+                    }
+                    else 
+                    {
+                        k = nextInt(H[i].h_ind_count);
+                    }
+                }
+            }
+        }
+    }
     
 
+}
+
+void printPairwiseInteractions(int size)
+{
+    unsigned short int i = 0;
+    unsigned short int j = 0;
+    FILE *fp;
+    fp = fopen("pairwise.txt","w+");
+    for(i = 0; i < size; i++)
+    {
+        fprintf(fp, "Individuo: %d =>", i);
+        //output << "Specie :: " << i << " => ";
+        for(j = 0; j < ind_int[i]; j++)
+        {
+            fprintf(fp, "%d\n", ind_adj[i][j]);
+            //output << sp_adj[i][j] << "; ";
+        }
+        //output << "" << std::endl;
+    }
 }
 /**************************************************************************
         FIM ALGORITMO DE CLUSTERIZAÇÃO - SINGLE LINK

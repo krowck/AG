@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <windows.h>
+//#include <windows.h>
 #include <assert.h>
 #include <string.h>
 #include <float.h>
@@ -582,11 +582,12 @@ void clusterAnalysis(t_individuo populacao[], double clusterRadius, int total_in
     printDendogram(total_individuos);
     buildHabitats(total_individuos, distancia);
 
-    printPairwiseInteractions(total_individuos);
-    for (i = 0; i < total_individuos; ++i)
+    for (i = 0; i < g_habitatsSize; ++i)
     {
-        populacao[i].index = g_tree[i].distance;
-        clusterID[i] = g_tree[i].distance;
+        for (j = 0; j < H[i].h_ind_count; ++j)
+        {
+            populacao[H[i].h_ind[j]].index = i;
+        }       
     }
 }
 
@@ -839,11 +840,13 @@ void executar(int funcao, int total_individuos, int geracoes){
     FILE *fpMedia;
     FILE *fpDiversidade;
     FILE *fp;
+    FILE *fpNumeroCluster;
 
 
     fpMedia = fopen("mediaGeracoes.txt", "w+");
     fpDiversidade = fopen("mediaDiversity.txt", "w+");
     fp = fopen("output.txt", "w+");
+    fpNumeroCluster = fopen("NumeroDeCluster.txt", "w+");
     gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)
     {
@@ -857,7 +860,7 @@ void executar(int funcao, int total_individuos, int geracoes){
         int populationOverFlowFlag = 0;
         double stagnationCounter = 0;
         double averageMinimumValue = 0;
-        int maxClusters = 2; 
+        int maxClusters = 0;
         int flagCluster = 0;
         double prob_mutacao = 0.2;
         double minMutationRate = 0.002;
@@ -884,26 +887,25 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             
 
-            if (maxClusters < 6 && flagCluster == 0)
-            {
-                maxClusters++;
-            }
-            if (maxClusters == 6)
-            {
-                flagCluster = 1;
-            }
-            if (maxClusters > 2 && flagCluster == 1)
-            {
-                maxClusters--;
-            }
-            if (maxClusters == 2)
-            {
-                flagCluster = 0;
-            }
-            //printf("%d\n", maxClusters);
+            // if (maxClusters < 6 && flagCluster == 0)
+            // {
+            //     maxClusters++;
+            // }
+            // if (maxClusters == 6)
+            // {
+            //     flagCluster = 1;
+            // }
+            // if (maxClusters > 2 && flagCluster == 1)
+            // {
+            //     maxClusters--;
+            // }
+            // if (maxClusters == 2)
+            // {
+            //     flagCluster = 0;
+            // }
+            // //printf("%d\n", maxClusters);
 
             t_individuo populacao_aux[total_individuos];
-            t_individuo melhores[maxClusters];
             t_individuo best;
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
@@ -918,7 +920,8 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             clusterAnalysis(populacao, clusterRadius, total_individuos, clusterID, distanceFromCenter, clusterCenter, maxClusters);
 
-            
+            maxClusters = g_habitatsSize;
+            t_individuo melhores[maxClusters];
 
             for (i = 0; i < maxClusters; ++i)
             {
@@ -954,6 +957,7 @@ void executar(int funcao, int total_individuos, int geracoes){
             }
             vet_melhores[run][g] = best.fitness;
             vet_diversidade[run][g] = diversidade;
+            fprintf(fpNumeroCluster, "%d\n", g_habitatsSize);
         }
         printf("%d\n", run);
         //fprintf(fp, "-------------------------------");    
@@ -989,6 +993,7 @@ void executar(int funcao, int total_individuos, int geracoes){
     fclose(fp);
     fclose(fpMedia);
     fclose(fpDiversidade);
+    fclose(fpNumeroCluster);
 
 }
 

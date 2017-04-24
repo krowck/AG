@@ -267,7 +267,7 @@ void buildHabitats(int total_individuos, double** distances)
                 i++;
             cur_node = -1*H[cur_habitat].h_ind[i];
             cur_node_index = i;
-        }
+        } 
     }
     g_habitatsSize++;
 
@@ -323,7 +323,7 @@ void buildHabitats(int total_individuos, double** distances)
             }
         }
     }
-    
+
 
 }
 
@@ -337,13 +337,18 @@ void printPairwiseInteractions(int size)
     {
         fprintf(fp, "Individuo: %d =>", i);
         //output << "Specie :: " << i << " => ";
+        //printf("Individuo %d =>", i);
         for(j = 0; j < ind_int[i]; j++)
         {
+            //printf("%d\n", ind_adj[i][j]);
             fprintf(fp, "%d\n", ind_adj[i][j]);
             //output << sp_adj[i][j] << "; ";
         }
+        //printf("\n");
+        fprintf(fp, "\n");
         //output << "" << std::endl;
     }
+
 }
 /**************************************************************************
         FIM ALGORITMO DE CLUSTERIZAÇÃO - SINGLE LINK

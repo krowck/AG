@@ -1,5 +1,0 @@
-Individuo: 0 =>6
-Individuo: 1 =>Individuo: 2 =>Individuo: 3 =>Individuo: 4 =>Individuo: 5 =>Individuo: 6 =>0
-Individuo: 7 =>Individuo: 8 =>Individuo: 9 =>: 9 =>: 9 =>1
-4
-8

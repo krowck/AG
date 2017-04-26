@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-//#include <windows.h>
+#include <windows.h>
 #include <assert.h>
 #include <string.h>
 #include <float.h>
@@ -264,7 +264,10 @@ void gerar_individuo(t_individuo individuo, int funcao)
  * 
  */
 void op_mutacao(t_individuo *filho, double prob_mutacao, int funcao){
-    int i;    
+    int i;
+    float l_inf = 0.0;
+    float l_sup = 0.0;
+    identificar_dominio(funcao,&l_inf,&l_sup);
     for (i = 0; i < NVARS; ++i){   
         float u = obter_numero_uniforme();     
         if (u <= prob_mutacao){        
@@ -272,10 +275,18 @@ void op_mutacao(t_individuo *filho, double prob_mutacao, int funcao){
             if(v <= 0.5)
             {
                 filho->gene[i] += obter_numero_uniforme();
+                if (filho->gene[i] > l_sup)
+                {
+                    filho->gene[i] = l_sup;
+                }
             }
             else
             {
                 filho->gene[i] -= obter_numero_uniforme();
+                if (filho->gene[i] < l_inf)
+                {
+                    filho->gene[i] = l_inf;
+                }
             }
         }
     }
@@ -350,15 +361,7 @@ void selecao_aleatoria(t_individuo populacao[], int total_individuos, t_individu
 /*
 apenas atualizar o vetor de população com os novos individuos gerador a partir de crossover e mutação
 */
-void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, t_individuo novos_individuos[], int comecar){
-    int i = 0;
-    int j = 0;
-    for(i = comecar; i < total_individuos + comecar; i++){
-        populacao[i] = novos_individuos[j];
-        j++;
-    }
 
-}
 /*
 double diversity_population(t_individuo pop[], int tamPopulation)
 {
@@ -566,11 +569,20 @@ double** distancia_euclidiana(t_individuo pop[], int total_individuos)
 }
 
 
-void clusterAnalysis(t_individuo populacao[], double clusterRadius, int total_individuos, double *clusterID, double *distanceFromCenter, double clusterCenter[total_individuos][NVARS], int numberOfClusters)
+void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, t_individuo novos_individuos[], int comecar){
+    int i = 0;
+    int j = 0;
+    for(i = comecar; i < total_individuos + comecar; i++){
+        populacao[i] = novos_individuos[j];
+        j++;
+    }
+
+}
+
+void clusterAnalysis(t_individuo populacao[], int total_individuos)
 {   
     int numberOfChromosomes = NVARS;
     int count, index = 0;
-    double EuclideanDistance[numberOfClusters];
     double aux, media, min = 0.0;
     double Y;
     int i, j, k;
@@ -579,7 +591,6 @@ void clusterAnalysis(t_individuo populacao[], double clusterRadius, int total_in
     initHabitats(total_individuos);
     distancia = distancia_euclidiana(populacao, total_individuos);
     singlelink(total_individuos, NVARS, distancia);
-    printDendogram(total_individuos);
     buildHabitats(total_individuos, distancia);
 
     for (i = 0; i < g_habitatsSize; ++i)
@@ -613,7 +624,6 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
                 pop_aux[aux].gene[j] = populacao[i].gene[j];
                 pop_aux[aux].fitness = populacao[i].fitness;
             }
-            distanceMatrix[aux] = distanceFromCenter[i];
             aux++;
             numberOfChromosomes++;
         }
@@ -621,7 +631,7 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
 
     //printf("%d\n", numberOfChromosomes);
 
-    double percentageChromosomesToCrossover = 0.7;
+    double percentageChromosomesToCrossover = 0.8;
     int totalChromosomesToCrossover = round(percentageChromosomesToCrossover * numberOfChromosomes);
 
     int vetor_aux[numberOfChromosomes];
@@ -702,13 +712,7 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
     if(numberOfChromosomes != 0){
         encontra_melhor_individuo(novos_individuos, numberOfChromosomes, &melhor);
         melhores[alvo] = melhor;    
-    }/*
-    else
-    {
-        gerar_individuo(melhor, funcao);
-        imprimir_individuo(melhor);
-        melhores[alvo] = melhor;
-    }*/
+    }
 }
 
 void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double prob_mutacao)
@@ -852,7 +856,6 @@ void executar(int funcao, int total_individuos, int geracoes){
     {
         double startingClusterRadius = 0.3;
         double minimumClusterRadiusThreshold = 0.1;
-        double clusterRadius = startingClusterRadius;
         double numberOfLessThan2 = 0;
         double numberOfGreaterThan6 = 0;
         double firstnessIndex = 2;
@@ -863,7 +866,7 @@ void executar(int funcao, int total_individuos, int geracoes){
         int maxClusters = 0;
         int flagCluster = 0;
         double prob_mutacao = 0.2;
-        double minMutationRate = 0.002;
+        double minMutationRate = 0.02;
         m_nmdf = 0.0;        
         
         /*
@@ -885,40 +888,12 @@ void executar(int funcao, int total_individuos, int geracoes){
             double distanceFromCenter[total_individuos];
             int comecar = 0;
 
-            
-
-            // if (maxClusters < 6 && flagCluster == 0)
-            // {
-            //     maxClusters++;
-            // }
-            // if (maxClusters == 6)
-            // {
-            //     flagCluster = 1;
-            // }
-            // if (maxClusters > 2 && flagCluster == 1)
-            // {
-            //     maxClusters--;
-            // }
-            // if (maxClusters == 2)
-            // {
-            //     flagCluster = 0;
-            // }
-            // //printf("%d\n", maxClusters);
-
             t_individuo populacao_aux[total_individuos];
             t_individuo best;
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            /*
-            int *c = k_means(populacao, total_individuos, NVARS, 6, 0.0001, 0);
-            for (i = 0; i < total_individuos; ++i)
-            {
-                printf("data point %d is in cluster %d\n", i, c[i]);
-            }   
-            */
-
-            clusterAnalysis(populacao, clusterRadius, total_individuos, clusterID, distanceFromCenter, clusterCenter, maxClusters);
+            clusterAnalysis(populacao, total_individuos);
 
             maxClusters = g_habitatsSize;
             t_individuo melhores[maxClusters];
@@ -937,7 +912,6 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             double diversidade = diversity_population(populacao, total_individuos);
 
-            //imprimir_populacao(populacao, total_individuos);
             //mergeSort(populacao, total_individuos);
             //imprimir_populacao(populacao, total_individuos);
 

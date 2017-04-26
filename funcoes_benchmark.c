@@ -3,7 +3,7 @@
 
 #define PI 3.14159265359
 
-#define NVARS 10
+#define NVARS 30
 
 double obj;
 double aux, aux1;

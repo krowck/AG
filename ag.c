@@ -1,6 +1,6 @@
 /*********************************************************************************************************************
 *                                   Algoritmo desenvolvido para o TCC                                                *
-*  para compilar:  gcc ag.c -lm -o main principal.c funcoes_benchmark.c gerador_numeros.c ./src-clstr/cluster.c -O3  *
+*  para compilar:  gcc ag.c -lm -o main principal.c funcoes_benchmark.c gerador_numeros.c -O3                        *
 *                                                                                                                    *
 *                                                                                                                    *
 *********************************************************************************************************************/
@@ -15,7 +15,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "./src-clstr/cluster.h" 
 #include "funcoes_benchmark.h"
 #include "gerador_numeros.h"
 

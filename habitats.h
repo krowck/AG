@@ -47,14 +47,6 @@ void singlelink(int total_individuos, int dimensions, double** distances)
     double minrange;
     unsigned short int i = 0, j=0;
 
-    //for (i = 0; i < total_individuos; ++i)
-    //{
-    //    for (j = 0; j < total_individuos; ++j)
-    //     {
-    //         printf("distances[%d][%d] = %f\n",i, j, distances[i][j]);
-    //     }
-    //}
-
     g_tree = treecluster(total_individuos, total_individuos, 0, 0, 0, 0, 'e', 's', distances);
 
     if(!g_tree)
@@ -135,7 +127,7 @@ void buildHabitats(int total_individuos, double** distances)
 
     while (sum_tabu < total_individuos-1)
     {
-        if ( obter_numero_uniforme() >= g_tree[cur_node-1].distance) //link those two itens
+        if ( nextDouble() >= g_tree[cur_node-1].distance) //link those two itens
         {
             if (cur_node == total_individuos-1) //first iteration.
             {
@@ -308,8 +300,7 @@ void buildHabitats(int total_individuos, double** distances)
                     {
                         dist_aux = distances[ H[i].h_ind[j] ][ H[i].h_ind[k] ];
                     }
-
-                    if ( (j != k) && obter_numero_uniforme() >= dist_aux) 
+                    if ( (j != k) && nextDouble() >= dist_aux) 
                     {
                         ind_adj[ H[i].h_ind[j] ][ind_int[H[i].h_ind[j]]] = H[i].h_ind[k];
                         ind_int[H[i].h_ind[j]]++;

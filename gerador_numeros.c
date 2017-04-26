@@ -50,3 +50,16 @@ int nextInt(int n)
 {
 	return (int) ((double)0.0 + ((n - 0.0)*rand()/(RAND_MAX+1.0)));
 }
+
+
+
+double nextDoubleA(double low, double high)
+{
+	return low + ((double)rand() / RAND_MAX) * ( high - low );
+}
+
+double nextDouble()
+{
+	double result = nextDoubleA(0,1);
+	return result;
+}

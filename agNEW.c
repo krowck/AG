@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <windows.h>
+//#include <windows.h>
 #include <assert.h>
 #include <string.h>
 #include <float.h>
@@ -242,7 +242,7 @@ void gerar_individuo(t_individuo *individuo, int funcao)
     float l_sup = 0.0;
     identificar_dominio(funcao,&l_inf,&l_sup);
 
-    int i, j;
+    int j;
     for(j = 0; j < NVARS; j++)
     {
         individuo->gene[j] =  obter_numero_uniforme_continuo(l_inf,l_sup); 
@@ -453,7 +453,7 @@ double euclidiana(double ind1, double ind2)
    return sqrt(soma);
 }
 
-
+/*
 double find_minimum_value(double a[], int n) 
 {
     int c;
@@ -488,7 +488,7 @@ int find_minimum_index(double a[], int n)
     return index; 
 }
 
-
+*/
 
 
 void shuffle(int *array, int n)
@@ -526,9 +526,7 @@ double find_maximum(double a[], int n)
 double** distancia_euclidiana(t_individuo pop[], int total_individuos)
 {
     double media = 0.0;
-    double aux = 0;
     double euclid_max = 0;
-    double temp = 0;
     int i, j, k;
     unsigned short int a = 0;
 
@@ -565,6 +563,8 @@ double** distancia_euclidiana(t_individuo pop[], int total_individuos)
         }
     }
     return distances;
+
+
 }
 
 
@@ -578,13 +578,19 @@ void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, 
 
 }
 
+void freeDistances(int total_individuos)
+{    
+    unsigned short int a;
+    for(a = 0; a < total_individuos; a++)
+    {
+        free(distances[a]);
+    }
+    free(distances);
+}
+
 void clusterAnalysis(t_individuo populacao[], int total_individuos)
 {   
-    int numberOfChromosomes = NVARS;
-    int count, index = 0;
-    double aux, media, min = 0.0;
-    double Y;
-    int i, j, k;
+    int i, j;
     double **distancia;
 
     initHabitats(total_individuos);
@@ -599,14 +605,14 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos)
             populacao[H[i].h_ind[j]].index = i;
         }       
     }
+    freeDistances(total_individuos);
+    destroyHabitats(total_individuos);
 }
 
 void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double *distanceFromCenter, double killIndex, int funcao, int total_individuos, 
     double prob_mutacao, int *comecar, t_individuo populacao_aux[], t_individuo melhores[])
 {
-    double distanceMatrix[total_individuos];
     int numberOfChromosomes = 0;
-    double u;
     int flag = 0, cont = 0, cont2 = 0;
     t_individuo pai;
     t_individuo mae;
@@ -635,7 +641,6 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
 
     int vetor_aux[numberOfChromosomes];
     int vetor_pai[numberOfChromosomes];
-    int vetor_naopai[numberOfChromosomes - totalChromosomesToCrossover];
     t_individuo novos_individuos[aux];
 
     for (i = 0; i < numberOfChromosomes; ++i)
@@ -870,17 +875,9 @@ void executar(int funcao, int total_individuos, int geracoes){
     gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)
     {
-        double startingClusterRadius = 0.3;
-        double minimumClusterRadiusThreshold = 0.1;
-        double numberOfLessThan2 = 0;
-        double numberOfGreaterThan6 = 0;
         double firstnessIndex = 2;
         double killIndex = firstnessIndex + 1;
-        int populationOverFlowFlag = 0;
-        double stagnationCounter = 0;
-        double averageMinimumValue = 0;
         int maxClusters = 0;
-        int flagCluster = 0;
         double prob_mutacao = 0.2;
         double minMutationRate = 0.02;
         m_nmdf = 0.0;        
@@ -889,18 +886,13 @@ void executar(int funcao, int total_individuos, int geracoes){
          * A Populacao e representada como um vetor de "t_individuo", cujo o tamanho e "total_individuos" (definido previamente pelo usuario).
          */
         t_individuo populacao[total_individuos];
-        t_individuo pop_teste[total_individuos];
         
         gerar_populacao_inicial(populacao, total_individuos, funcao);
 
         int g = 0; //contador de geracoes
-        int j = 0, i, k;
+        int i;
         for(g = 0; g < geracoes; g++){
-            double *newClusterData;
-            double *newClusterDataFitness;
-            double *ideals;
             double clusterID[total_individuos];
-            double clusterCenter[total_individuos][NVARS];
             double distanceFromCenter[total_individuos];
             int comecar = 0;
 

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <windows.h>
+//#include <windows.h>
 #include <assert.h>
 #include <float.h>
 #include <string.h>
@@ -868,7 +868,7 @@ int verify_ALL(t_individuo pop[], int total_individuos, int controle)
             {
 
                 printf("TRETAAAA %lf %d %d ", pop[i].gene[j], i, controle);
-                Sleep(5000);
+                //Sleep(5000);
                 return 1;
             }
         }
@@ -969,8 +969,8 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     FILE *fp;
 
 
-    fpMedia = fopen("mediaGeracoes.txt", "w+");
-    fpDiversidade = fopen("mediaDiversity.txt", "w+");
+    fpMedia = fopen("mediaGeracoes_KMEANS.txt", "w+");
+    fpDiversidade = fopen("mediaDiversity_KMEANS.txt", "w+");
     fp = fopen("output.txt", "w+");
     gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)

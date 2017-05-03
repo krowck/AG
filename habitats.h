@@ -41,11 +41,30 @@ void initHabitats(int total_individuos)
 }
 
 
+void destroyHabitats(int size)
+{
+    unsigned short int a = 0;
+    
+    for (a = 0; a < size; a++)
+    {
+        free(H[a].h_ind);
+    }
+    free(H);
+
+    free(ind_int);
+    
+    for (a = 0; a < size; a++)
+    {
+        free(ind_adj[a]);
+    }
+    free(ind_adj);
+}
+
 void singlelink(int total_individuos, int dimensions, double** distances)
 {
     double maxrange;
     double minrange;
-    unsigned short int i = 0, j=0;
+    unsigned short int i = 0;
 
     g_tree = treecluster(total_individuos, total_individuos, 0, 0, 0, 0, 'e', 's', distances);
 

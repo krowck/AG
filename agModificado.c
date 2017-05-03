@@ -1,6 +1,6 @@
 /*********************************************************************************************************************
 *                                   Algoritmo desenvolvido para o TCC                                                *
-*  para compilar:  gcc agModificado.c -lm -o main principal.c funcoes_benchmark.c gerador_numeros.c ./src-clstr/cluster.c -O3  *
+*  para compilar:  gcc agModificado.c -lm -o agK principal.c funcoes_benchmark.c gerador_numeros.c -O3              *
 *                                                                                                                    *
 *                                                                                                                    *
 *********************************************************************************************************************/
@@ -16,12 +16,11 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-#include "./src-clstr/cluster.h" 
 #include "funcoes_benchmark.h"
 #include "gerador_numeros.h"
 
 #define TAM_TORNEIO 5
-#define RUNS 10
+#define RUNS 5
 
 double m_nmdf = 0;
 

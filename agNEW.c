@@ -21,7 +21,7 @@
 #include "habitats.h"
 
 #define TAM_TORNEIO 5
-#define RUNS 10
+#define RUNS 5
 
 double m_nmdf = 0;
 double **distances;
@@ -236,7 +236,7 @@ void gerar_populacao_inicial(t_individuo populacao[], int total_individuos, int 
     //imprimir_populacao(populacao, total_individuos);
 }
 
-void gerar_individuo(t_individuo individuo, int funcao)
+void gerar_individuo(t_individuo *individuo, int funcao)
 {
     float l_inf = 0.0;
     float l_sup = 0.0;
@@ -245,11 +245,10 @@ void gerar_individuo(t_individuo individuo, int funcao)
     int i, j;
     for(j = 0; j < NVARS; j++)
     {
-        individuo.gene[j] =  obter_numero_uniforme_continuo(l_inf,l_sup);
-            //printf("GENE  >>>>> %f  ", populacao[i].gene[j]);    
+        individuo->gene[j] =  obter_numero_uniforme_continuo(l_inf,l_sup); 
     }        
        //printf("\n");
-    individuo.fitness = obter_fitness(funcao, individuo.gene);      
+    individuo->fitness = obter_fitness(funcao, individuo->gene);      
 }
 
 /*
@@ -305,7 +304,7 @@ void op_mutacao(t_individuo *filho, double prob_mutacao, int funcao){
  */
 
 void op_crossover(t_individuo *pai, t_individuo *mae, int funcao){
-    int point = obter_numero_uniforme_discreto(1, NVARS-2);
+    int point = obter_numero_uniforme_discreto(1, NVARS-1);
 
     int i;
     double t;
@@ -720,7 +719,21 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
     t_individuo pai;
     t_individuo mae;
     t_individuo novos_individuos[maxClusters];
+    int vetor_aux[maxClusters];
+    int vetor_pai[maxClusters];
     int i, cont = 0, flag = 0;
+
+    for (i = 0; i < maxClusters; ++i)
+    {
+        vetor_aux[i] = i;
+    }
+
+    shuffle(vetor_aux, maxClusters);
+
+    for (i = 0; i < maxClusters; ++i)
+    {
+        vetor_pai[i] = vetor_aux[i];
+    }
 
     if (maxClusters % 2 == 1 && maxClusters > 2)
     {
@@ -730,13 +743,9 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
 
     for (i = 0; i < maxClusters; ++i)
     {
-        pai = melhores[i];
-        mae = melhores[i+1];
-        //u = obter_numero_uniforme();
-        //if (u < 0.9)
-        //{
+        pai = melhores[vetor_pai[i]];
+        mae = melhores[vetor_pai[i+1]];
         op_crossover(&pai, &mae, funcao);
-        //}
         op_mutacao(&pai,prob_mutacao,funcao);
         op_mutacao(&mae,prob_mutacao,funcao);
         novos_individuos[i] = pai;
@@ -747,11 +756,9 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
 
     if (flag == 1)
     {
-        novos_individuos[cont] = melhores[cont];
+        novos_individuos[cont] = melhores[vetor_pai[cont]];
         maxClusters++;
     }
-
-    //imprimir_populacao(novos_individuos, maxClusters);
 
     op_selecao_de_sobreviventes(melhores, maxClusters, novos_individuos, 0);
 }
@@ -763,53 +770,64 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
     int vetor_aux[total_individuos + maxClusters];
     int vetor_pai[total_individuos + maxClusters];
     t_individuo mutado;
+    t_individuo new_individuo;
     int flag = 0;
     float l_inf = 0.0;
     float l_sup = 0.0;
     identificar_dominio(funcao,&l_inf,&l_sup);
+    double u;
 
     for (i = 0; i < total_individuos + maxClusters; ++i)
     {
         vetor_aux[i] = i;
-        //printf("VETOR: %d  I: %d\n", vetor_aux[i], i);
     }
+
     shuffle(vetor_aux, total_individuos + maxClusters);
 
     for (i = 0; i < total_individuos; ++i)
     {
         vetor_pai[i] = vetor_aux[i];
-        //printf("VETOR: %d  I: %d\n", vetor_pai[i], i);
     }
+
     for (i = 0; i < total_individuos; ++i)
     {
-        if (vetor_pai[i] >= total_individuos)
+        u = nextDouble();
+        if (u < 0.99999)
         {
-            for (j = 0; j < NVARS; ++j)
+            if (vetor_pai[i] >= total_individuos)
             {
-                if (melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] < l_inf*2 || melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] > l_sup*2)
+                for (j = 0; j < NVARS; ++j)
                 {
-                    flag = 1;
+                    if (melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] < l_inf*2 || melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] > l_sup*2)
+                    {
+                        flag = 1;
+                    }
                 }
-            }
-            if (flag == 0)
-            {
-                mutado = melhores[(total_individuos+maxClusters-1) - vetor_pai[i]];
-                op_mutacao(&mutado, prob_mutacao, funcao);
-                novos_individuos[i] = mutado;
+                if (flag == 0)
+                {
+                    mutado = melhores[(total_individuos+maxClusters-1) - vetor_pai[i]];
+                    op_mutacao(&mutado, prob_mutacao, funcao);
+                    novos_individuos[i] = mutado;
+                }
+                else
+                {
+                    mutado = populacao[vetor_pai[(total_individuos+maxClusters-1) - vetor_pai[i]]];
+                    op_mutacao(&mutado, prob_mutacao, funcao);
+                    novos_individuos[i] = mutado;
+                }            
             }
             else
             {
-                mutado = populacao[vetor_pai[(total_individuos+maxClusters-1) - vetor_pai[i]]];
+                mutado = populacao[vetor_pai[i]];
                 op_mutacao(&mutado, prob_mutacao, funcao);
                 novos_individuos[i] = mutado;
-            }            
+            }   
         }
         else
         {
-            mutado = populacao[vetor_pai[i]];
-            op_mutacao(&mutado, prob_mutacao, funcao);
-            novos_individuos[i] = mutado;
-        }        
+            gerar_individuo(&new_individuo, funcao);
+            novos_individuos[i] = new_individuo;
+        }     
     }
     //imprimir_populacao(novos_individuos, total_individuos);
     op_selecao_de_sobreviventes(populacao, total_individuos, novos_individuos, 0);
@@ -832,7 +850,6 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
  */
 void executar(int funcao, int total_individuos, int geracoes){
     srand((unsigned)time(NULL)); 
-
     int run;
     int i;
     int j;
@@ -845,7 +862,6 @@ void executar(int funcao, int total_individuos, int geracoes){
     FILE *fpDiversidade;
     FILE *fp;
     FILE *fpNumeroCluster;
-
 
     fpMedia = fopen("mediaGeracoes.txt", "w+");
     fpDiversidade = fopen("mediaDiversity.txt", "w+");

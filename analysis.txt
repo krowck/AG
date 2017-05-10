@@ -3,24 +3,25 @@ Flat profile:
 Each sample counts as 0.01 seconds.
   %   cumulative   self              self     total           
  time   seconds   seconds    calls   s/call   s/call  name    
- 51.06      2.90     2.90 47692000     0.00     0.00  obter_numero_uniforme
- 16.02      3.81     0.91        1     0.91     5.64  executar
- 13.21      4.56     0.75    25000     0.00     0.00  distancia_euclidiana
-  7.92      5.01     0.45  2287718     0.00     0.00  ackley
-  2.82      5.17     0.16    25000     0.00     0.00  treecluster
-  2.64      5.32     0.15    25000     0.00     0.00  generateNextPopulation
-  1.76      5.42     0.10    25000     0.00     0.00  buildHabitats
-  1.41      5.50     0.08    25000     0.00     0.00  improveIdeals
-  1.06      5.56     0.06   749994     0.00     0.00  op_mutacao
-  0.70      5.60     0.04   384392     0.00     0.00  obter_numero_uniforme_discreto
-  0.53      5.63     0.03                             d_zakharov
-  0.35      5.65     0.02  2082073     0.00     0.00  nextDouble
-  0.35      5.67     0.02    25000     0.00     0.00  singlelink
-  0.18      5.68     0.01                             schwefel
-  0.00      5.68     0.00  2287718     0.00     0.00  obter_fitness
-  0.00      5.68     0.00  1543789     0.00     0.00  d_ackley
-  0.00      5.68     0.00   775932     0.00     0.00  nextInt
-  0.00      5.68     0.00     4680     0.00     0.00  obter_numero_uniforme_continuo
+ 33.47      0.86     0.86        1     0.86     2.55  executar
+ 26.07      1.53     0.67    25000     0.00     0.00  distancia_euclidiana
+ 11.67      1.83     0.30  2270666     0.00     0.00  ackley
+  5.84      1.98     0.15    25000     0.00     0.00  buildHabitats
+  5.45      2.12     0.14 47428734     0.00     0.00  obter_numero_uniforme
+  4.67      2.24     0.12    25000     0.00     0.00  treecluster
+  4.28      2.35     0.11    25000     0.00     0.00  generateNextPopulation
+  3.11      2.43     0.08   749991     0.00     0.00  op_mutacao
+  1.56      2.47     0.04    25000     0.00     0.00  improveIdeals
+  0.78      2.49     0.02  2096877     0.00     0.00  nextDouble
+  0.78      2.51     0.02    25000     0.00     0.00  clusterAnalysis
+  0.78      2.53     0.02                             d_zakharov
+  0.58      2.55     0.02  2270666     0.00     0.00  obter_fitness
+  0.39      2.56     0.01   380129     0.00     0.00  obter_numero_uniforme_discreto
+  0.39      2.57     0.01    25000     0.00     0.00  singlelink
+  0.19      2.57     0.01                             mergeSort
+  0.00      2.57     0.00  1535263     0.00     0.00  d_ackley
+  0.00      2.57     0.00   791339     0.00     0.00  nextInt
+  0.00      2.57     0.00     4770     0.00     0.00  obter_numero_uniforme_continuo
 
  %         the percentage of the total running time of the
 time       program used by this function.
@@ -58,109 +59,113 @@ notice and this notice are preserved.
 		     Call graph (explanation follows)
 
 
-granularity: each sample hit covers 2 byte(s) for 0.18% of 5.68 seconds
+granularity: each sample hit covers 2 byte(s) for 0.39% of 2.57 seconds
 
 index % time    self  children    called     name
-                0.91    4.73       1/1           menu [2]
-[1]     99.3    0.91    4.73       1         executar [1]
-                0.15    1.65   25000/25000       generateNextPopulation [4]
-                0.90    0.00 14756358/47692000     obter_numero_uniforme [3]
-                0.08    0.70   25000/25000       improveIdeals [6]
-                0.75    0.00   25000/25000       distancia_euclidiana [7]
-                0.19    0.00  941030/2287718     ackley [8]
-                0.02    0.16   25000/25000       singlelink [9]
-                0.10    0.01   25000/25000       buildHabitats [11]
-                0.02    0.00  235220/384392      obter_numero_uniforme_discreto [12]
-                0.00    0.00  941030/2287718     obter_fitness [16]
-                0.00    0.00  470445/1543789     d_ackley [17]
-                0.00    0.00    4500/4680        obter_numero_uniforme_continuo [19]
+                0.86    1.69       1/1           menu [2]
+[1]     99.0    0.86    1.69       1         executar [1]
+                0.02    0.96   25000/25000       clusterAnalysis [3]
+                0.11    0.26   25000/25000       generateNextPopulation [5]
+                0.04    0.11   25000/25000       improveIdeals [9]
+                0.13    0.00  954126/2270666     ackley [6]
+                0.04    0.00 14962710/47428734     obter_numero_uniforme [10]
+                0.01    0.00  954126/2270666     obter_fitness [15]
+                0.01    0.00  238494/380129      obter_numero_uniforme_discreto [16]
+                0.00    0.00  476993/1535263     d_ackley [18]
+                0.00    0.00    4500/4770        obter_numero_uniforme_continuo [20]
 -----------------------------------------------
                                                  <spontaneous>
-[2]     99.3    0.00    5.64                 menu [2]
-                0.91    4.73       1/1           executar [1]
+[2]     99.0    0.00    2.55                 menu [2]
+                0.86    1.69       1/1           executar [1]
 -----------------------------------------------
-                0.57    0.00 9392244/47692000     improveIdeals [6]
-                0.90    0.00 14756358/47692000     executar [1]
-                1.43    0.00 23543398/47692000     op_mutacao [5]
-[3]     51.1    2.90    0.00 47692000         obter_numero_uniforme [3]
+                0.02    0.96   25000/25000       executar [1]
+[3]     38.2    0.02    0.96   25000         clusterAnalysis [3]
+                0.67    0.00   25000/25000       distancia_euclidiana [4]
+                0.15    0.01   25000/25000       buildHabitats [8]
+                0.01    0.12   25000/25000       singlelink [11]
 -----------------------------------------------
-                0.15    1.65   25000/25000       executar [1]
-[4]     31.6    0.15    1.65   25000         generateNextPopulation [4]
-                0.06    1.58  749994/749994      op_mutacao [5]
-                0.01    0.00  750000/2082073     nextDouble [14]
-                0.00    0.00       6/2287718     ackley [8]
-                0.00    0.00   25006/1543789     d_ackley [17]
-                0.00    0.00     180/4680        obter_numero_uniforme_continuo [19]
-                0.00    0.00       6/2287718     obter_fitness [16]
+                0.67    0.00   25000/25000       clusterAnalysis [3]
+[4]     26.1    0.67    0.00   25000         distancia_euclidiana [4]
 -----------------------------------------------
-                0.06    1.58  749994/749994      generateNextPopulation [4]
-[5]     28.9    0.06    1.58  749994         op_mutacao [5]
-                1.43    0.00 23543398/47692000     obter_numero_uniforme [3]
-                0.15    0.00  749994/2287718     ackley [8]
-                0.00    0.00  749994/2287718     obter_fitness [16]
-                0.00    0.00  749994/1543789     d_ackley [17]
+                0.11    0.26   25000/25000       executar [1]
+[5]     14.4    0.11    0.26   25000         generateNextPopulation [5]
+                0.08    0.17  749991/749991      op_mutacao [7]
+                0.01    0.00  750000/2096877     nextDouble [13]
+                0.00    0.00       9/2270666     ackley [6]
+                0.00    0.00       9/2270666     obter_fitness [15]
+                0.00    0.00   25009/1535263     d_ackley [18]
+                0.00    0.00     270/4770        obter_numero_uniforme_continuo [20]
 -----------------------------------------------
-                0.08    0.70   25000/25000       executar [1]
-[6]     13.8    0.08    0.70   25000         improveIdeals [6]
-                0.57    0.00 9392244/47692000     obter_numero_uniforme [3]
-                0.12    0.00  596688/2287718     ackley [8]
-                0.02    0.00  149172/384392      obter_numero_uniforme_discreto [12]
-                0.00    0.00  596688/2287718     obter_fitness [16]
-                0.00    0.00  298344/1543789     d_ackley [17]
+                0.00    0.00       9/2270666     generateNextPopulation [5]
+                0.07    0.00  566540/2270666     improveIdeals [9]
+                0.10    0.00  749991/2270666     op_mutacao [7]
+                0.13    0.00  954126/2270666     executar [1]
+[6]     11.7    0.30    0.00 2270666         ackley [6]
 -----------------------------------------------
-                0.75    0.00   25000/25000       executar [1]
-[7]     13.2    0.75    0.00   25000         distancia_euclidiana [7]
+                0.08    0.17  749991/749991      generateNextPopulation [5]
+[7]      9.9    0.08    0.17  749991         op_mutacao [7]
+                0.10    0.00  749991/2270666     ackley [6]
+                0.07    0.00 23548778/47428734     obter_numero_uniforme [10]
+                0.00    0.00  749991/2270666     obter_fitness [15]
+                0.00    0.00  749991/1535263     d_ackley [18]
 -----------------------------------------------
-                0.00    0.00       6/2287718     generateNextPopulation [4]
-                0.12    0.00  596688/2287718     improveIdeals [6]
-                0.15    0.00  749994/2287718     op_mutacao [5]
-                0.19    0.00  941030/2287718     executar [1]
-[8]      7.9    0.45    0.00 2287718         ackley [8]
+                0.15    0.01   25000/25000       clusterAnalysis [3]
+[8]      6.3    0.15    0.01   25000         buildHabitats [8]
+                0.01    0.00 1346877/2096877     nextDouble [13]
+                0.00    0.00  791339/791339      nextInt [19]
 -----------------------------------------------
-                0.02    0.16   25000/25000       executar [1]
-[9]      3.2    0.02    0.16   25000         singlelink [9]
-                0.16    0.00   25000/25000       treecluster [10]
+                0.04    0.11   25000/25000       executar [1]
+[9]      5.8    0.04    0.11   25000         improveIdeals [9]
+                0.07    0.00  566540/2270666     ackley [6]
+                0.03    0.00 8917246/47428734     obter_numero_uniforme [10]
+                0.00    0.00  566540/2270666     obter_fitness [15]
+                0.00    0.00  141635/380129      obter_numero_uniforme_discreto [16]
+                0.00    0.00  283270/1535263     d_ackley [18]
 -----------------------------------------------
-                0.16    0.00   25000/25000       singlelink [9]
-[10]     2.8    0.16    0.00   25000         treecluster [10]
+                0.03    0.00 8917246/47428734     improveIdeals [9]
+                0.04    0.00 14962710/47428734     executar [1]
+                0.07    0.00 23548778/47428734     op_mutacao [7]
+[10]     5.4    0.14    0.00 47428734         obter_numero_uniforme [10]
 -----------------------------------------------
-                0.10    0.01   25000/25000       executar [1]
-[11]     2.0    0.10    0.01   25000         buildHabitats [11]
-                0.01    0.00 1332073/2082073     nextDouble [14]
-                0.00    0.00  775932/775932      nextInt [18]
+                0.01    0.12   25000/25000       clusterAnalysis [3]
+[11]     5.1    0.01    0.12   25000         singlelink [11]
+                0.12    0.00   25000/25000       treecluster [12]
 -----------------------------------------------
-                0.02    0.00  149172/384392      improveIdeals [6]
-                0.02    0.00  235220/384392      executar [1]
-[12]     0.7    0.04    0.00  384392         obter_numero_uniforme_discreto [12]
+                0.12    0.00   25000/25000       singlelink [11]
+[12]     4.7    0.12    0.00   25000         treecluster [12]
+-----------------------------------------------
+                0.01    0.00  750000/2096877     generateNextPopulation [5]
+                0.01    0.00 1346877/2096877     buildHabitats [8]
+[13]     0.8    0.02    0.00 2096877         nextDouble [13]
 -----------------------------------------------
                                                  <spontaneous>
-[13]     0.5    0.03    0.00                 d_zakharov [13]
+[14]     0.8    0.02    0.00                 d_zakharov [14]
 -----------------------------------------------
-                0.01    0.00  750000/2082073     generateNextPopulation [4]
-                0.01    0.00 1332073/2082073     buildHabitats [11]
-[14]     0.4    0.02    0.00 2082073         nextDouble [14]
+                0.00    0.00       9/2270666     generateNextPopulation [5]
+                0.00    0.00  566540/2270666     improveIdeals [9]
+                0.00    0.00  749991/2270666     op_mutacao [7]
+                0.01    0.00  954126/2270666     executar [1]
+[15]     0.6    0.02    0.00 2270666         obter_fitness [15]
+-----------------------------------------------
+                0.00    0.00  141635/380129      improveIdeals [9]
+                0.01    0.00  238494/380129      executar [1]
+[16]     0.4    0.01    0.00  380129         obter_numero_uniforme_discreto [16]
 -----------------------------------------------
                                                  <spontaneous>
-[15]     0.2    0.01    0.00                 schwefel [15]
+[17]     0.2    0.01    0.00                 mergeSort [17]
 -----------------------------------------------
-                0.00    0.00       6/2287718     generateNextPopulation [4]
-                0.00    0.00  596688/2287718     improveIdeals [6]
-                0.00    0.00  749994/2287718     op_mutacao [5]
-                0.00    0.00  941030/2287718     executar [1]
-[16]     0.0    0.00    0.00 2287718         obter_fitness [16]
+                0.00    0.00   25009/1535263     generateNextPopulation [5]
+                0.00    0.00  283270/1535263     improveIdeals [9]
+                0.00    0.00  476993/1535263     executar [1]
+                0.00    0.00  749991/1535263     op_mutacao [7]
+[18]     0.0    0.00    0.00 1535263         d_ackley [18]
 -----------------------------------------------
-                0.00    0.00   25006/1543789     generateNextPopulation [4]
-                0.00    0.00  298344/1543789     improveIdeals [6]
-                0.00    0.00  470445/1543789     executar [1]
-                0.00    0.00  749994/1543789     op_mutacao [5]
-[17]     0.0    0.00    0.00 1543789         d_ackley [17]
+                0.00    0.00  791339/791339      buildHabitats [8]
+[19]     0.0    0.00    0.00  791339         nextInt [19]
 -----------------------------------------------
-                0.00    0.00  775932/775932      buildHabitats [11]
-[18]     0.0    0.00    0.00  775932         nextInt [18]
------------------------------------------------
-                0.00    0.00     180/4680        generateNextPopulation [4]
-                0.00    0.00    4500/4680        executar [1]
-[19]     0.0    0.00    0.00    4680         obter_numero_uniforme_continuo [19]
+                0.00    0.00     270/4770        generateNextPopulation [5]
+                0.00    0.00    4500/4770        executar [1]
+[20]     0.0    0.00    0.00    4770         obter_numero_uniforme_continuo [20]
 -----------------------------------------------
 
  This table describes the call tree of the program, and was sorted by
@@ -253,9 +258,10 @@ notice and this notice are preserved.
 
 Index by function name
 
-   [8] ackley                  [4] generateNextPopulation [19] obter_numero_uniforme_continuo
-  [11] buildHabitats           [6] improveIdeals          [12] obter_numero_uniforme_discreto
-  [17] d_ackley               [14] nextDouble              [5] op_mutacao
-  [13] d_zakharov             [18] nextInt                [15] schwefel
-   [7] distancia_euclidiana   [16] obter_fitness           [9] singlelink
-   [1] executar                [3] obter_numero_uniforme  [10] treecluster
+   [6] ackley                  [5] generateNextPopulation [20] obter_numero_uniforme_continuo
+   [8] buildHabitats           [9] improveIdeals          [16] obter_numero_uniforme_discreto
+   [3] clusterAnalysis        [17] mergeSort               [7] op_mutacao
+  [18] d_ackley               [13] nextDouble             [11] singlelink
+  [14] d_zakharov             [19] nextInt                [12] treecluster
+   [4] distancia_euclidiana   [15] obter_fitness
+   [1] executar               [10] obter_numero_uniforme

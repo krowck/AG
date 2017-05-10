@@ -14,9 +14,9 @@
  * Esta funcao retorna um valor (do tipo float) aleatorio uniforme entre 0 e 1.
  */
 float obter_numero_uniforme(){
-    int max_mix = rand() % 100; //aumenta a aleatoriedade
-    int i;
-    for (i = 0; i < max_mix; i++) rand(); //aumenta a aleatoriedade
+    //int max_mix = rand() % 100; //aumenta a aleatoriedade
+    //int i;
+    //for (i = 0; i < max_mix; i++) rand(); //aumenta a aleatoriedade
     
     return (float) rand() / (float) RAND_MAX;
 }

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <windows.h>
+//#include <windows.h>
 #include <assert.h>
 #include <string.h>
 #include <float.h>
@@ -321,6 +321,28 @@ void op_crossover(t_individuo *pai, t_individuo *mae, int funcao){
     mae->fitness = obter_fitness(funcao, mae->gene);
 }
 
+void op_uniformcrossover(t_individuo *pai, t_individuo *mae, int funcao)
+{
+    int i;
+    double t;
+
+    //printf("%d\n", point);
+
+    for (i = 0; i < NVARS; i++)
+    {
+        double prob = obter_numero_uniforme();
+        if (prob < 0.5)
+        {
+            t = pai->gene[i];
+            pai->gene[i] = mae->gene[i];
+            mae->gene[i] = t;
+        }
+        
+    }
+    pai->fitness = obter_fitness(funcao, pai->gene);
+    mae->fitness = obter_fitness(funcao, mae->gene);
+}
+
 /*
  * Operador de Selecao de Pais
  * No procedimento abaixo, candidatos a pais sao sorteados aleatoriamente, sendo que o candidato vencedor do torneio
@@ -356,45 +378,6 @@ void selecao_aleatoria(t_individuo populacao[], int total_individuos, t_individu
 {
     *sorteio = populacao[obter_numero_uniforme_discreto(0,total_individuos-1)];
 }
-
-/*
-apenas atualizar o vetor de população com os novos individuos gerador a partir de crossover e mutação
-*/
-
-/*
-double diversity_population(t_individuo pop[], int tamPopulation)
-{
-
-    double diversity = 0;
-    double aux_1 = 0;
-    double aux_2 = 0;
-    unsigned short int a = 0;
-    unsigned short int b = 0;
-    unsigned short int d = 0;
-    for(a = 0; a < tamPopulation; a++)
-    {
-        for(b = (a+1); b < tamPopulation; b++)
-        {
-            aux_1 = 0;
-            for(d = 0; d < NVARS; d++)
-            {       
-                aux_1 += pow(pop[a].gene[d] - pop[b].gene[d], 2);
-            }
-            if(b == (a+1) || aux_2 > aux_1)
-            {
-                aux_2 = aux_1;
-            }
-        }
-        diversity += log((double)1.0 + aux_2);  
-    } 
-    if(m_nmdf < diversity)
-    {
-       m_nmdf = diversity;
-    }
-    return diversity / m_nmdf;
-}
-*/
-
 
 double diversity_population(t_individuo pop[], int tamPopulation)
 {
@@ -452,44 +435,6 @@ double euclidiana(double ind1, double ind2)
     }
    return sqrt(soma);
 }
-
-/*
-double find_minimum_value(double a[], int n) 
-{
-    int c;
-    double min;
-
-    min = a[0];
-    int index = 0;
-    //printf("%f\n", min);
-    for (c = 1; c < n; c++) {
-        if (a[c] < min) {
-            index = c;
-            min = a[c];
-        }
-    }
-    return min;
-}
-
-int find_minimum_index(double a[], int n)
-{
-    int c;
-    double min;
-
-    min = a[0];
-    int index = 0;
-    //printf("%f\n", min);
-    for (c = 1; c < n; c++) {
-        if (a[c] < min) {
-            index = c;
-            min = a[c];
-        }
-    }
-    return index; 
-}
-
-*/
-
 
 void shuffle(int *array, int n)
 {
@@ -684,7 +629,8 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
             //if (u < 0.9)
             //{
                 //printf("%f\n", u);
-            op_crossover(&pai, &mae, funcao);
+            //op_crossover(&pai, &mae, funcao);
+            op_uniformcrossover(&pai, &mae, funcao);
             //}
             op_mutacao(&pai,prob_mutacao,funcao);
             op_mutacao(&mae,prob_mutacao,funcao);
@@ -750,7 +696,8 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
     {
         pai = melhores[vetor_pai[i]];
         mae = melhores[vetor_pai[i+1]];
-        op_crossover(&pai, &mae, funcao);
+        //op_crossover(&pai, &mae, funcao);
+        op_uniformcrossover(&pai, &mae, funcao);
         op_mutacao(&pai,prob_mutacao,funcao);
         op_mutacao(&mae,prob_mutacao,funcao);
         novos_individuos[i] = pai;
@@ -942,7 +889,7 @@ void executar(int funcao, int total_individuos, int geracoes){
             fprintf(fpNumeroCluster, "%d\n", g_habitatsSize);
         }
         printf("%d\n", run);
-        imprimir_populacao(populacao, total_individuos);
+        //imprimir_populacao(populacao, total_individuos);
         //fprintf(fp, "-------------------------------");    
         //sleep(10);
     }

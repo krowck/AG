@@ -1,6 +1,6 @@
 /*********************************************************************************************************************
 *                                   Algoritmo desenvolvido para o TCC                                                *
-*  para compilar:  gcc agModificado.c -lm -o agK principal.c funcoes_benchmark.c gerador_numeros.c -O3              *
+*  para compilar:  gcc agPadrao.c -lm -o ag principal.c funcoes_benchmark.c gerador_numeros.c -O3              *
 *                                                                                                                    *
 *                                                                                                                    *
 *********************************************************************************************************************/
@@ -364,42 +364,6 @@ void selecao_aleatoria(t_individuo populacao[], int total_individuos, t_individu
     *sorteio = populacao[obter_numero_uniforme_discreto(0,total_individuos-1)];
 }
 
-
-/*
-double diversity_population(t_individuo pop[], int tamPopulation)
-{
-
-    double diversity = 0;
-    double aux_1 = 0;
-    double aux_2 = 0;
-    unsigned short int a = 0;
-    unsigned short int b = 0;
-    unsigned short int d = 0;
-    for(a = 0; a < tamPopulation; a++)
-    {
-        for(b = (a+1); b < tamPopulation; b++)
-        {
-            aux_1 = 0;
-            for(d = 0; d < NVARS; d++)
-            {       
-                aux_1 += pow(pop[a].gene[d] - pop[b].gene[d], 2);
-            }
-            if(b == (a+1) || aux_2 > aux_1)
-            {
-                aux_2 = aux_1;
-            }
-        }
-        diversity += log((double)1.0 + aux_2);  
-    } 
-    if(m_nmdf < diversity)
-    {
-       m_nmdf = diversity;
-    }
-    return diversity / m_nmdf;
-}
-*/
-
-
 double diversity_population(t_individuo pop[], int tamPopulation)
 {
     //VARIÁVEIS LOCAIS
@@ -433,239 +397,6 @@ double diversity_population(t_individuo pop[], int tamPopulation)
         m_nmdf = diversity; 
     }
     return diversity / m_nmdf;
-}
-
-
-/****
-** kmeans.c
-** - a simple k-means clustering routine
-** - returns the cluster labels of the data points in an array
-** - here's an example
-**   extern int *k_means(double**, int, int, int, double, double**);
-**   ...
-**   int *c = k_means(data_points, num_points, dim, 20, 1e-4, 0);
-**   for (i = 0; i < num_points; i++) {
-**      printf("data point %d is in cluster %d\n", i, c[i]);
-**   }
-**   ...
-**   free(c);
-** Parameters
-** - array of data points (double **data)
-** - number of data points (int n)
-** - dimension (int m)
-** - desired number of clusters (int k)
-** - error tolerance (double t)
-**   - used as the stopping criterion, i.e. when the sum of
-**     squared euclidean distance (standard error for k-means)
-**     of an iteration is within the tolerable range from that
-**     of the previous iteration, the clusters are considered
-**     "stable", and the function returns
-**   - a suggested value would be 0.0001
-** - output address for the final centroids (double **centroids)
-**   - user must make sure the memory is properly allocated, or
-**     pass the null pointer if not interested in the centroids
-** References
-** - J. MacQueen, "Some methods for classification and analysis
-**   of multivariate observations", Fifth Berkeley Symposium on
-**   Math Statistics and Probability, 281-297, 1967.
-** - I.S. Dhillon and D.S. Modha, "A data-clustering algorithm
-**   on distributed memory multiprocessors",
-**   Large-Scale Parallel Data Mining, 245-260, 1999.
-** Notes
-** - this function is provided as is with no warranty.
-** - the author is not responsible for any damage caused
-**   either directly or indirectly by using this function.
-** - anybody is free to do whatever he/she wants with this
-**   function as long as this header section is preserved.
-** Created on 2005-04-12 by
-** - Roger Zhang (rogerz@cs.dal.ca)
-** Modifications
-** -
-** Last compiled under Linux with gcc-3
-*/
-
-
-
-int *k_means(t_individuo data[], int n, int m, int k, double t, double **centroids)
-{
-    /* output cluster label for each data point */
-    int *labels = (int*)calloc(n, sizeof(int));
-
-    int h, i, j; /* loop counters, of course :) */
-    int *counts = (int*)calloc(k, sizeof(int)); /* size of each cluster */
-    double old_error, error = DBL_MAX; /* sum of squared euclidean distance */
-    double **c = centroids ? centroids : (double**)calloc(k, sizeof(double*));
-    double **c1 = (double**)calloc(k, sizeof(double*)); /* temp centroids */
-
-    //assert(data && k > 0 && k <= n && m > 0 && t >= 0); /* for debugging */
-
-    /****
-    ** initialization */
-
-    for (h = i = 0; i < k; h += n / k, i++) 
-    {
-        c1[i] = (double*)calloc(m, sizeof(double));
-        if (!centroids)
-        {
-         c[i] = (double*)calloc(m, sizeof(double));
-        }
-        /* pick k points as initial centroids */
-        for (j = m; j-- > 0; c[i][j] = data[h].gene[j]);
-    }
-
-    /****
-    ** main loop */
-
-    do {
-        /* save error from last step */
-        old_error = error, error = 0;
-
-        /* clear old counts and temp centroids */
-        for (i = 0; i < k; counts[i++] = 0) {
-            for (j = 0; j < m; c1[i][j++] = 0);
-        }
-
-        for (h = 0; h < n; h++) 
-        {
-            /* identify the closest cluster */
-            double min_distance = DBL_MAX;
-            for (i = 0; i < k; i++) 
-            {
-                double distance = 0;
-                for (j = m; j-- > 0; distance += pow(data[h].gene[j] - c[i][j], 2));
-                if (distance < min_distance) 
-                {
-                    labels[h] = i;
-                    min_distance = distance;
-                }
-            }
-            /* update size and temp centroid of the destination cluster */
-            for (j = m; j-- > 0; c1[labels[h]][j] += data[h].gene[j]);
-            counts[labels[h]]++;
-            /* update standard error */
-            error += min_distance;
-        }
-
-        for (i = 0; i < k; i++)
-        { /* update all centroids */
-            for (j = 0; j < m; j++) 
-            {
-                c[i][j] = counts[i] ? c1[i][j] / counts[i] : c1[i][j];
-            }
-        }
-
-    } while (fabs(error - old_error) > t);
-
-    /****
-    ** housekeeping */
-
-    for (i = 0; i < k; i++) {
-        if (!centroids) {
-            free(c[i]);
-        }
-        free(c1[i]);
-    }
-
-    if (!centroids) {
-        free(c);
-    }
-    free(c1);
-
-    free(counts);
-
-    return labels;
-}
-
-double sum_array(t_individuo pop[], int num_elements)
-{
-   int i;
-   double sum = 0;
-   for (i=0; i<num_elements; i++)
-   {
-     sum = sum + pop->gene[i];
-   }
-   return(sum);
-}
-
-double euclidiana(double ind1, double ind2)
-{
-    double soma = 0.0;
-    int i;
-    for (i = 0; i < NVARS; ++i)
-    {
-        soma += pow((ind1 - ind2),2);
-   }
-   return sqrt(soma);
-}
-
-double distancia_euclidiana(t_individuo pop[], int total_individuos, double clusterCenter[total_individuos][NVARS], int numberOfClusters)
-{
-    double media = 0.0;
-    double aux = 0;
-    int i, j, k;
-
-    //imprimir_populacao(pop, total_individuos);
-    for (i = 0; i < total_individuos; ++i)
-    {
-        for (j = 0; j < numberOfClusters; ++j)
-        {
-            for (k = 0; k < NVARS; ++k)
-            {
-                //printf("GENE: %f \nCLUSTER: %f\n", pop[i].gene[k], clusterCenter[j][k]);
-                media += euclidiana(pop[i].gene[k], clusterCenter[j][k]);
-            }
-            aux+=1;            
-        }
-    }
-    //printf("%f\n", media/aux);
-    return media/aux;
-}
-
-double find_minimum_value(double a[], int n) 
-{
-    int c;
-    double min;
-
-    min = a[0];
-    //printf("%f\n", min);
-    for (c = 1; c < n; c++) {
-        if (a[c] < min) {
-            min = a[c];
-        }
-    }
-    return min;
-}
-
-int find_minimum_index(double a[], int n)
-{
-    int c;
-    double min;
-
-    min = a[0];
-    int index = 0;
-    //printf("%f\n", min);
-    for (c = 1; c < n; c++) {
-        if (a[c] < min) {
-            index = c;
-            min = a[c];
-        }
-    }
-    return index; 
-}
-
-
-
-void clusterAnalysis(t_individuo populacao[], int total_individuos, double *clusterID, int numberOfClusters)
-{   
-    int i;
-
-    int *c = k_means(populacao, total_individuos, NVARS, numberOfClusters, 0.0001, 0);
-
-    for (i = 0; i < total_individuos; ++i)
-    {
-        populacao[i].index = c[i];
-        clusterID[i] = c[i];
-    }
 }
 
 void shuffle(int *array, int n)
@@ -712,237 +443,6 @@ void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, 
     }
 }
 
-void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_individuos, double prob_mutacao, 
-    int *comecar, t_individuo populacao_aux[], t_individuo melhores[], int **vetor_flag, int maxClusters)
-{
-    int numberOfChromosomes = 0;
-    int flag = 0, cont = 0, cont2 = 0;
-    t_individuo pai;
-    t_individuo mae;
-    t_individuo pop_aux[total_individuos];
-    t_individuo melhor;
-
-    if (((*vetor_flag) = (int*)calloc(maxClusters, sizeof(int)))==NULL)
-        return;
-
-    int i, j, aux = 0;
-    for (i = 0; i < total_individuos; ++i)
-    {
-        if (populacao[i].index == alvo)
-        {
-            for (j = 0; j < NVARS; ++j)
-            {
-                pop_aux[aux].gene[j] = populacao[i].gene[j];
-                pop_aux[aux].fitness = populacao[i].fitness;
-            }
-            aux++;
-            numberOfChromosomes++;
-        }
-    }
-
-    double percentageChromosomesToCrossover = 0.8;
-    int totalChromosomesToCrossover = round(percentageChromosomesToCrossover * numberOfChromosomes);
-
-    int vetor_aux[numberOfChromosomes];
-    int vetor_pai[numberOfChromosomes];
-    t_individuo novos_individuos[aux];
-
-    // if (totalChromosomesToCrossover == 0)
-    // {
-    //     return;
-    // }
-
-    for (i = 0; i < numberOfChromosomes; ++i)
-    {
-        vetor_aux[i] = i;
-    }
-
-    shuffle(vetor_aux, numberOfChromosomes);
-
-    for (i = 0; i < totalChromosomesToCrossover; ++i)
-    {
-        vetor_pai[i] = vetor_aux[i];
-        cont2++;
-    }
-    for (i = cont2; i < numberOfChromosomes; ++i)
-    {
-        vetor_pai[i] = vetor_aux[i];
-    }
-
-    if (totalChromosomesToCrossover%2 == 1 && totalChromosomesToCrossover > 2)
-    {
-        totalChromosomesToCrossover--;
-        flag = 1;
-    }
-    if (totalChromosomesToCrossover == 1)
-    {
-        novos_individuos[0] = pop_aux[vetor_pai[totalChromosomesToCrossover-1]];
-        //op_selecao_de_sobreviventes(populacao_aux, totalChromosomesToCrossover, novos_individuos, *comecar);
-    }
-    else
-    {
-        for (i = 0; i < totalChromosomesToCrossover; ++i)
-        {      
-            pai = pop_aux[vetor_pai[i]];
-            mae = pop_aux[vetor_pai[i+1]];
-            op_crossover(&pai, &mae, funcao);
-            op_mutacao(&pai,prob_mutacao,funcao);
-            op_mutacao(&mae,prob_mutacao,funcao);
-            novos_individuos[i] = pai;
-            i++;
-            novos_individuos[i] = mae;
-            cont += 2;
-        }
-    }
-    
-    if (flag == 1)
-    {
-        novos_individuos[cont] = pop_aux[vetor_pai[totalChromosomesToCrossover]];
-        totalChromosomesToCrossover++;
-    }
-
-    for (i = cont2; i < numberOfChromosomes; ++i)
-    {
-        novos_individuos[i] = pop_aux[vetor_pai[i]];
-    }
-
-    op_selecao_de_sobreviventes(populacao_aux, numberOfChromosomes, novos_individuos, *comecar);
-
-    *comecar += numberOfChromosomes;    
-
-    if(numberOfChromosomes != 0)
-    {
-        encontra_melhor_individuo(novos_individuos, numberOfChromosomes, &melhor);
-        melhores[alvo] = melhor;
-    }
-    else
-    {
-        (*vetor_flag)[alvo] = 1;
-    }
-}
-
-void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double prob_mutacao)
-{
-    t_individuo pai;
-    t_individuo mae;
-    t_individuo novos_individuos[maxClusters];
-    int i, cont = 0, flag = 0;
-
-    if (maxClusters % 2 == 1 && maxClusters > 2)
-    {
-        maxClusters--;
-        flag = 1;
-    }
-
-    for (i = 0; i < maxClusters; ++i)
-    {
-        pai = melhores[i];
-        mae = melhores[i+1];
-        op_crossover(&pai, &mae, funcao);
-        op_mutacao(&pai,prob_mutacao,funcao);
-        op_mutacao(&mae,prob_mutacao,funcao);
-        novos_individuos[i] = pai;
-        i++;
-        novos_individuos[i] = mae;
-        cont += 2;
-    }
-
-    if (flag == 1)
-    {
-        novos_individuos[cont] = melhores[cont];
-        maxClusters++;
-    }
-
-    op_selecao_de_sobreviventes(melhores, maxClusters, novos_individuos, 0);
-}
-
-int verify_ALL(t_individuo pop[], int total_individuos, int controle)
-{
-    int i, j, cont;
-    for (i = 0; i < total_individuos; ++i)
-    {
-        cont = 0;
-        for (j = 0; j < NVARS; ++j)
-        {
-            if (pop[i].gene[j] >= 40)
-            {
-
-                printf("TRETAAAA %lf %d %d ", pop[i].gene[j], i, controle);
-                //Sleep(5000);
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-
-void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int total_individuos, int maxClusters, double prob_mutacao, int funcao)
-{
-    int i, j;
-    t_individuo novos_individuos[total_individuos];
-    int vetor_aux[total_individuos + maxClusters];
-    int vetor_pai[total_individuos + maxClusters];
-    t_individuo mutado;
-    int flag = 0;
-    float l_inf = 0.0;
-    float l_sup = 0.0;
-    identificar_dominio(funcao,&l_inf,&l_sup);
-
-    //printf("%d\n", maxClusters);
-
-    for (i = 0; i < total_individuos + maxClusters; ++i)
-    {
-        vetor_aux[i] = i;
-        //printf("VETOR: %d  I: %d\n", vetor_aux[i], i);
-    }
-
-    shuffle(vetor_aux, total_individuos + maxClusters);
-
-    for (i = 0; i < total_individuos; ++i)
-    {
-        vetor_pai[i] = vetor_aux[i];
-        //printf("VETOR: %d  I: %d\n", vetor_pai[i], i);
-    }
-
-
-    for (i = 0; i < total_individuos; ++i)
-    {
-        if (vetor_pai[i] >= total_individuos)
-        {
-            for (j = 0; j < NVARS; ++j)
-            {
-                if (melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] < l_inf*2 || melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] > l_sup*2)
-                {
-                    flag = 1;
-                }
-            }
-            if (flag == 0)
-            {
-                mutado = melhores[(total_individuos+maxClusters-1) - vetor_pai[i]];
-                op_mutacao(&mutado, prob_mutacao, funcao);
-                novos_individuos[i] = mutado;
-            }
-            else
-            {
-                mutado = populacao[vetor_pai[(total_individuos+maxClusters-1) - vetor_pai[i]]];
-                op_mutacao(&mutado, prob_mutacao, funcao);
-                novos_individuos[i] = mutado;
-            }            
-        }
-        else
-        {
-            mutado = populacao[vetor_pai[i]];
-            op_mutacao(&mutado, prob_mutacao, funcao);
-            novos_individuos[i] = mutado;
-        }        
-    }
-    //imprimir_populacao(novos_individuos, total_individuos);
-    op_selecao_de_sobreviventes(populacao, total_individuos, novos_individuos, 0);
-    //imprimir_populacao(populacao, total_individuos);
-}
-
-
-
 
 /*
  * Evolucao da Populacao
@@ -969,9 +469,9 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     FILE *fp;
 
 
-    fpMedia = fopen("mediaGeracoes_KMEANS.txt", "w+");
-    fpDiversidade = fopen("mediaDiversity_KMEANS.txt", "w+");
-    fp = fopen("output.txt", "w+");
+    fpMedia = fopen("mediaGeracoes_AGPADRAO.txt", "w+");
+    fpDiversidade = fopen("mediaDiversity_AGPADRAO.txt", "w+");
+    fp = fopen("output_AGPADRAO.txt", "w+");
     gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)
     {
@@ -992,46 +492,41 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
         int g = 0; //contador de geracoes
         int i = 0;
         for(g = 0; g < geracoes; g++){
-            double clusterID[total_individuos];
-            int comecar = 0; 
-            int *vetor_flag;
-
-
-            if (maxClusters < 6 && flagCluster == 0)
-            {
-                maxClusters++;
-            }
-            if (maxClusters == 6)
-            {
-                flagCluster = 1;
-            }
-            if (maxClusters > 2 && flagCluster == 1)
-            {
-                maxClusters--;
-            }
-            if (maxClusters == 2)
-            {
-                flagCluster = 0;
-            }
 
             t_individuo populacao_aux[total_individuos];
-            t_individuo melhores[maxClusters];
             t_individuo best;
+            t_individuo mae;
+            t_individuo pai;
+            int vetor_aux[total_individuos];
+            int vetor_pai[total_individuos];
+            t_individuo novos_individuos[total_individuos];
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            clusterAnalysis(populacao, total_individuos, clusterID, maxClusters);
-
-            for (i = 0; i < maxClusters; ++i)
+            for (i = 0; i < total_individuos; ++i)
             {
-                improveCluster(populacao, i, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores, &vetor_flag, maxClusters);
+                vetor_aux[i] = i;
             }
 
-            improveIdeals(melhores, maxClusters, funcao, prob_mutacao);   
+            shuffle(vetor_aux, total_individuos);
 
-            memcpy(populacao, populacao_aux, sizeof(t_individuo)*total_individuos);
+            for (i = 0; i < total_individuos; ++i)
+            {
+                vetor_pai[i] = vetor_aux[i];
+            }
 
-            generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao);
+            for (int i = 0; i < total_individuos; ++i)
+            {
+                pai = populacao[vetor_pai[i]];
+                mae = populacao[vetor_pai[i+1]];
+                op_crossover(&pai, &mae, funcao);
+                op_mutacao(&pai,prob_mutacao,funcao);
+                op_mutacao(&mae,prob_mutacao,funcao);
+                novos_individuos[i] = pai;
+                i++;
+                novos_individuos[i] = mae;
+            }
+            op_selecao_de_sobreviventes(populacao, total_individuos, novos_individuos, 0);
 
             double diversidade = diversity_population(populacao, total_individuos);
 

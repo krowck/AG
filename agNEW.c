@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-//#include <windows.h>
+#include <windows.h>
 #include <assert.h>
 #include <string.h>
 #include <float.h>
@@ -942,6 +942,7 @@ void executar(int funcao, int total_individuos, int geracoes){
             fprintf(fpNumeroCluster, "%d\n", g_habitatsSize);
         }
         printf("%d\n", run);
+        imprimir_populacao(populacao, total_individuos);
         //fprintf(fp, "-------------------------------");    
         //sleep(10);
     }

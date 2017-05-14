@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-//#include <windows.h>
+#include <windows.h>
 #include <assert.h>
 #include <string.h>
 #include <float.h>
@@ -805,8 +805,12 @@ void executar(int funcao, int total_individuos, int geracoes){
     int run;
     int i;
     int j;
-    double vet_melhores[RUNS][geracoes];
-    double vet_diversidade[RUNS][geracoes];
+
+    double **vet_melhores = (double **)malloc(RUNS * sizeof(double*));
+        for(int i = 0; i < RUNS; i++) vet_melhores[i] = (double *)malloc(geracoes * sizeof(double));
+    double **vet_diversidade = (double **)malloc(RUNS * sizeof(double*));
+        for(int i = 0; i < RUNS; i++) vet_diversidade[i] = (double *)malloc(geracoes * sizeof(double));
+
     struct timeval timevalA;
     struct timeval timevalB;
 
@@ -845,6 +849,7 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             t_individuo populacao_aux[total_individuos];
             t_individuo best;
+            t_individuo best_after;
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
@@ -872,7 +877,12 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             populacao[total_individuos-1] = best;
 
+            encontra_melhor_individuo(populacao, total_individuos, &best_after);
+
+            populacao[total_individuos-2] = best_after;
+
             encontra_melhor_individuo(populacao, total_individuos, &best);
+
             // Saida de Dados
             fprintf(fp, "%d %f %f\n", g, best.fitness, diversidade);
             //printf("%d\t%f  ",g,best.fitness); //saida de dados

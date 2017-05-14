@@ -3,7 +3,7 @@
 
 #define PI 3.14159265359
 
-#define NVARS 30
+#define NVARS 50
 
 double obj;
 double aux, aux1;
@@ -23,10 +23,6 @@ float rastrigin(double cromossomo[]){
         {
                 obj += (pow(cromossomo[j],(double)2)-cos(2*PI*cromossomo[j]));
         }
-    if (NVARS + obj < 0.01)
-    {
-    	printf("obj %lf\n", obj);
-    }
     return NVARS + obj;
 }
 

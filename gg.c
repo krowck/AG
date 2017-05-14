@@ -3,7 +3,7 @@
 
 int main(void)
 {
-    FILE *in = fopen("mediaGeracoes_ZAKHAROV20D.txt", "r");
+    FILE *in = fopen("mediaGeracoes_KMEANS.txt", "r");
     
     if (in != NULL) {
         double sum = 0, sum_squares = 0, n = 0;

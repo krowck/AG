@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-//#include <windows.h>
+#include <windows.h>
 #include <assert.h>
 #include <float.h>
 #include <string.h>
@@ -455,8 +455,13 @@ void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, 
  */
 void executar(int funcao, int total_individuos, int geracoes, double prob_mutacao){
     srand((unsigned)time(NULL)); 
-    double vet_melhores[RUNS][geracoes];
-    double vet_diversidade[RUNS][geracoes];
+    //double vet_melhores[RUNS][geracoes];
+    //double vet_diversidade[RUNS][geracoes];
+
+    double **vet_melhores = (double **)malloc(RUNS * sizeof(double*));
+        for(int i = 0; i < RUNS; i++) vet_melhores[i] = (double *)malloc(geracoes * sizeof(double));
+    double **vet_diversidade = (double **)malloc(RUNS * sizeof(double*));
+        for(int i = 0; i < RUNS; i++) vet_diversidade[i] = (double *)malloc(geracoes * sizeof(double));
     int run;
     int i;
     int j;

@@ -60,7 +60,6 @@ void menu(){
     //     printf("\nErro! A probabilidade de mutacao deve estar no intervalo entre 0 e 1 !!!\n");
     //     return;
     // }
-
     executar(funcao, total_individuos, geracoes);
 
 }

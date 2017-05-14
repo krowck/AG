@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-//#include <windows.h>
+#include <windows.h>
 #include <assert.h>
 #include <float.h>
 #include <string.h>
@@ -23,7 +23,6 @@
 #define RUNS 5
 
 double m_nmdf = 0;
-
 /*
  * A estrutura (struct) "t_individuo" representa um unico individuo da populacao
  */
@@ -233,7 +232,7 @@ void gerar_populacao_inicial(t_individuo populacao[], int total_individuos, int 
     
 }
 
-void gerar_individuo(t_individuo individuo, int funcao)
+void gerar_individuo(t_individuo *individuo, int funcao)
 {
     float l_inf = 0.0;
     float l_sup = 0.0;
@@ -242,11 +241,10 @@ void gerar_individuo(t_individuo individuo, int funcao)
     int j;
     for(j = 0; j < NVARS; j++)
     {
-        individuo.gene[j] =  obter_numero_uniforme_continuo(l_inf,l_sup);
-            //printf("GENE  >>>>> %f  ", populacao[i].gene[j]);    
+        individuo->gene[j] =  obter_numero_uniforme_continuo(l_inf,l_sup);   
     }        
        //printf("\n");
-    individuo.fitness = obter_fitness(funcao, individuo.gene);      
+    individuo->fitness = obter_fitness(funcao, individuo->gene);      
 }
 
 /*
@@ -326,6 +324,28 @@ void op_crossover(t_individuo *pai, t_individuo *mae, int funcao){
     //    printf("%lf  %lf\n", mae->fitness, pai->fitness);
     //}
 
+}
+
+void op_uniformcrossover(t_individuo *pai, t_individuo *mae, int funcao)
+{
+    int i;
+    double t;
+
+    //printf("%d\n", point);
+
+    for (i = 0; i < NVARS; i++)
+    {
+        double prob = obter_numero_uniforme();
+        if (prob < 0.5)
+        {
+            t = pai->gene[i];
+            pai->gene[i] = mae->gene[i];
+            mae->gene[i] = t;
+        }
+        
+    }
+    pai->fitness = obter_fitness(funcao, pai->gene);
+    mae->fitness = obter_fitness(funcao, mae->gene);
 }
 
 /*
@@ -713,7 +733,7 @@ void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, 
 }
 
 void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_individuos, double prob_mutacao, 
-    int *comecar, t_individuo populacao_aux[], t_individuo melhores[], int **vetor_flag, int maxClusters)
+    int *comecar, t_individuo populacao_aux[], t_individuo melhores[], int **vetor_flag, int maxClusters, t_individuo best)
 {
     int numberOfChromosomes = 0;
     int flag = 0, cont = 0, cont2 = 0;
@@ -785,7 +805,7 @@ void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_ind
         {      
             pai = pop_aux[vetor_pai[i]];
             mae = pop_aux[vetor_pai[i+1]];
-            op_crossover(&pai, &mae, funcao);
+            op_uniformcrossover(&pai, &mae, funcao);
             op_mutacao(&pai,prob_mutacao,funcao);
             op_mutacao(&mae,prob_mutacao,funcao);
             novos_individuos[i] = pai;
@@ -818,42 +838,9 @@ void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_ind
     else
     {
         (*vetor_flag)[alvo] = 1;
+        melhores[alvo] = best;
+        //gerar_individuo(&melhores[alvo], funcao);
     }
-}
-
-void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double prob_mutacao)
-{
-    t_individuo pai;
-    t_individuo mae;
-    t_individuo novos_individuos[maxClusters];
-    int i, cont = 0, flag = 0;
-
-    if (maxClusters % 2 == 1 && maxClusters > 2)
-    {
-        maxClusters--;
-        flag = 1;
-    }
-
-    for (i = 0; i < maxClusters; ++i)
-    {
-        pai = melhores[i];
-        mae = melhores[i+1];
-        op_crossover(&pai, &mae, funcao);
-        op_mutacao(&pai,prob_mutacao,funcao);
-        op_mutacao(&mae,prob_mutacao,funcao);
-        novos_individuos[i] = pai;
-        i++;
-        novos_individuos[i] = mae;
-        cont += 2;
-    }
-
-    if (flag == 1)
-    {
-        novos_individuos[cont] = melhores[cont];
-        maxClusters++;
-    }
-
-    op_selecao_de_sobreviventes(melhores, maxClusters, novos_individuos, 0);
 }
 
 int verify_ALL(t_individuo pop[], int total_individuos, int controle)
@@ -864,17 +851,89 @@ int verify_ALL(t_individuo pop[], int total_individuos, int controle)
         cont = 0;
         for (j = 0; j < NVARS; ++j)
         {
-            if (pop[i].gene[j] >= 40)
+            if (pop[i].gene[j] == 0.000000)
             {
 
                 printf("TRETAAAA %lf %d %d ", pop[i].gene[j], i, controle);
-                //Sleep(5000);
+                Sleep(5000);
                 return 1;
             }
         }
     }
     return 0;
 }
+
+void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double prob_mutacao)
+{
+    t_individuo pai;
+    t_individuo mae;
+    t_individuo novos_individuos[maxClusters];
+    int vetor_aux[maxClusters];
+    int vetor_pai[maxClusters];
+    int i, j, cont = 0, flag = 0, flag_melhores = 0, flag_cluster;
+    float l_inf = 0.0;
+    float l_sup = 0.0;
+    identificar_dominio(funcao,&l_inf,&l_sup);
+    int vet_auxiliar[maxClusters];
+    flag_cluster = maxClusters;
+
+    for (i = 0; i < maxClusters; ++i)
+    {
+        vetor_aux[i] = i;
+        vet_auxiliar[i] = 0;
+    }
+
+    shuffle(vetor_aux, maxClusters);
+
+    for (i = 0; i < maxClusters; ++i)
+    {
+        vetor_pai[i] = vetor_aux[i];
+    }
+
+    for (i = 0; i < maxClusters; ++i)
+    {
+        for (j = 0; j < NVARS; ++j)
+        {
+            if (melhores[i].gene[j] < 2*l_inf || melhores[i].gene[j] > 2*l_sup)
+            {
+                vet_auxiliar[i] = 1;
+                melhores[i].gene[j] = melhores[i+1].gene[j];
+            }             
+        }        
+    }
+
+    if (maxClusters % 2 == 1 && maxClusters > 2)
+    {
+        maxClusters--;
+        flag = 1;
+    }
+    
+    for (i = 0; i < maxClusters; ++i)
+    {
+        pai = melhores[vetor_pai[i]];        
+        mae = melhores[vetor_pai[i+1]];
+        //op_crossover(&pai, &mae, funcao);
+        op_uniformcrossover(&pai, &mae, funcao);
+        op_mutacao(&pai,prob_mutacao,funcao);
+        op_mutacao(&mae,prob_mutacao,funcao);
+        novos_individuos[i] = pai;
+        i++;    
+        novos_individuos[i] = mae;
+        cont += 2;           
+    }
+
+    if (flag == 1)
+    {
+        novos_individuos[cont] = melhores[vetor_pai[cont]];
+        maxClusters++;   
+    }
+
+    verify_ALL(novos_individuos, maxClusters, 5);
+    op_selecao_de_sobreviventes(melhores, maxClusters, novos_individuos, 0);
+    verify_ALL(melhores, maxClusters, 6);
+}
+
+
 
 void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int total_individuos, int maxClusters, double prob_mutacao, int funcao)
 {
@@ -884,9 +943,11 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
     int vetor_pai[total_individuos + maxClusters];
     t_individuo mutado;
     int flag = 0;
+    int vet_auxiliar[maxClusters];
     float l_inf = 0.0;
     float l_sup = 0.0;
     identificar_dominio(funcao,&l_inf,&l_sup);
+
 
     //printf("%d\n", maxClusters);
 
@@ -903,7 +964,6 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
         vetor_pai[i] = vetor_aux[i];
         //printf("VETOR: %d  I: %d\n", vetor_pai[i], i);
     }
-
 
     for (i = 0; i < total_individuos; ++i)
     {
@@ -955,8 +1015,15 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
  */
 void executar(int funcao, int total_individuos, int geracoes, double prob_mutacao){
     srand((unsigned)time(NULL)); 
-    double vet_melhores[RUNS][geracoes];
-    double vet_diversidade[RUNS][geracoes];
+
+    //double vet_melhores[RUNS][geracoes];
+    //double vet_diversidade[RUNS][geracoes];
+
+    double **vet_melhores = (double **)malloc(RUNS * sizeof(double*));
+        for(int i = 0; i < RUNS; i++) vet_melhores[i] = (double *)malloc(geracoes * sizeof(double));
+    double **vet_diversidade = (double **)malloc(RUNS * sizeof(double*));
+        for(int i = 0; i < RUNS; i++) vet_diversidade[i] = (double *)malloc(geracoes * sizeof(double));
+
     int run;
     int i;
     int j;
@@ -1024,10 +1091,10 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
 
             for (i = 0; i < maxClusters; ++i)
             {
-                improveCluster(populacao, i, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores, &vetor_flag, maxClusters);
-            }
+                improveCluster(populacao, i, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores, &vetor_flag, maxClusters, best);
+            }            
 
-            improveIdeals(melhores, maxClusters, funcao, prob_mutacao);   
+            improveIdeals(melhores, maxClusters, funcao, prob_mutacao);  
 
             memcpy(populacao, populacao_aux, sizeof(t_individuo)*total_individuos);
 

@@ -692,25 +692,36 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
         flag = 1;
     }
 
-    for (i = 0; i < maxClusters; ++i)
+    if (maxClusters == 1)
     {
-        pai = melhores[vetor_pai[i]];
-        mae = melhores[vetor_pai[i+1]];
-        //op_crossover(&pai, &mae, funcao);
-        op_uniformcrossover(&pai, &mae, funcao);
-        op_mutacao(&pai,prob_mutacao,funcao);
-        op_mutacao(&mae,prob_mutacao,funcao);
-        novos_individuos[i] = pai;
-        i++;
-        novos_individuos[i] = mae;
-        cont += 2;
+        novos_individuos[0] = melhores[0];
     }
+    else
+    {
+        for (i = 0; i < maxClusters; ++i)
+        {
+            pai = melhores[vetor_pai[i]];
+            mae = melhores[vetor_pai[i+1]];
+            //op_crossover(&pai, &mae, funcao);
+            op_uniformcrossover(&pai, &mae, funcao);
+            op_mutacao(&pai,prob_mutacao,funcao);
+            op_mutacao(&mae,prob_mutacao,funcao);
+            novos_individuos[i] = pai;
+            i++;
+            novos_individuos[i] = mae;
+            cont += 2;
+        }
+    }
+
+    
 
     if (flag == 1)
     {
         novos_individuos[cont] = melhores[vetor_pai[cont]];
         maxClusters++;
     }
+
+
 
     op_selecao_de_sobreviventes(melhores, maxClusters, novos_individuos, 0);
 }
@@ -860,13 +871,13 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             for (i = 0; i < maxClusters; ++i)
             {
+
                 improveCluster(populacao, clusterID, i, distanceFromCenter, killIndex, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores);
             }
 
             improveIdeals(melhores, maxClusters, funcao, prob_mutacao);   
 
             memcpy(populacao, populacao_aux, sizeof(t_individuo)*total_individuos);
-
 
             generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao);
 
@@ -907,8 +918,8 @@ void executar(int funcao, int total_individuos, int geracoes){
 
     printf("\n\ntempo de execucao: %lf\n",  (timevalB.tv_sec-timevalA.tv_sec+(timevalB.tv_usec-timevalA.tv_usec)/(double)1000000)/10.0);
 
-    double mediabest[geracoes];
-    double mediaDiversity[geracoes];
+    double *mediabest = (double *)malloc(geracoes * sizeof(double));
+    double *mediaDiversity = (double *)malloc(geracoes * sizeof(double));
 
 
     for (i = 0; i < geracoes; ++i)

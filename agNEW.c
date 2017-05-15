@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <windows.h>
+//#include <windows.h>
 #include <assert.h>
 #include <string.h>
 #include <float.h>
@@ -830,10 +830,18 @@ void executar(int funcao, int total_individuos, int geracoes){
     FILE *fp;
     FILE *fpNumeroCluster;
 
-    fpMedia = fopen("mediaGeracoes.txt", "w+");
-    fpDiversidade = fopen("mediaDiversity.txt", "w+");
+    char buf[0x100];
+    snprintf(buf, sizeof(buf), "Dados_SINGLELINK/GERACOESSINGLE_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
+    char buf1[0x100];
+    snprintf(buf1, sizeof(buf1), "Dados_SINGLELINK/DIVERSITYSINGLE_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
+    char buf2[0x100];
+    snprintf(buf2, sizeof(buf2), "Dados_SINGLELINK/CLUSTER_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
+
+    fpMedia = fopen(buf, "w+");
+    fpDiversidade = fopen(buf1, "w+");
+
     fp = fopen("output.txt", "w+");
-    fpNumeroCluster = fopen("NumeroDeCluster.txt", "w+");
+    fpNumeroCluster = fopen(buf2, "w+");
     gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)
     {
@@ -907,7 +915,10 @@ void executar(int funcao, int total_individuos, int geracoes){
             }
             vet_melhores[run][g] = best.fitness;
             vet_diversidade[run][g] = diversidade;
-            fprintf(fpNumeroCluster, "%d\n", g_habitatsSize);
+            if (run == 0)
+            {
+                fprintf(fpNumeroCluster, "%d\n", g_habitatsSize);
+            }            
         }
         printf("%d\n", run);
         //imprimir_populacao(populacao, total_individuos);
@@ -945,6 +956,28 @@ void executar(int funcao, int total_individuos, int geracoes){
     fclose(fpMedia);
     fclose(fpDiversidade);
     fclose(fpNumeroCluster);
+
+    FILE *in = fopen(buf, "r");
+    
+    if (in != NULL) {
+        double sum = 0, sum_squares = 0, n = 0;
+        double val;
+        
+        while (fscanf(in, "%lf", &val) == 1) {
+            sum += val;
+            sum_squares += val * val;
+            ++n;
+        }
+        fclose(in);
+        
+        if (n > 0) {
+            double mean = (double)sum / n;
+            double variance = (double)sum_squares / n - (mean * mean);
+            double std_dev = sqrt(variance);
+            
+            printf("Mean: %f\nStdDev: %f", mean, std_dev);
+        }
+    }
 
 }
 

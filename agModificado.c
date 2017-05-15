@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <windows.h>
+//#include <windows.h>
 #include <assert.h>
 #include <float.h>
 #include <string.h>
@@ -843,25 +843,25 @@ void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_ind
     }
 }
 
-int verify_ALL(t_individuo pop[], int total_individuos, int controle)
-{
-    int i, j, cont;
-    for (i = 0; i < total_individuos; ++i)
-    {
-        cont = 0;
-        for (j = 0; j < NVARS; ++j)
-        {
-            if (pop[i].gene[j] == 0.000000)
-            {
+// int verify_ALL(t_individuo pop[], int total_individuos, int controle)
+// {
+//     int i, j, cont;
+//     for (i = 0; i < total_individuos; ++i)
+//     {
+//         cont = 0;
+//         for (j = 0; j < NVARS; ++j)
+//         {
+//             if (pop[i].gene[j] == 0.000000)
+//             {
 
-                printf("TRETAAAA %lf %d %d ", pop[i].gene[j], i, controle);
-                Sleep(5000);
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
+//                 printf("TRETAAAA %lf %d %d ", pop[i].gene[j], i, controle);
+//                 Sleep(5000);
+//                 return 1;
+//             }
+//         }
+//     }
+//     return 0;
+// }
 
 void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double prob_mutacao)
 {
@@ -927,10 +927,7 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
         novos_individuos[cont] = melhores[vetor_pai[cont]];
         maxClusters++;   
     }
-
-    verify_ALL(novos_individuos, maxClusters, 5);
     op_selecao_de_sobreviventes(melhores, maxClusters, novos_individuos, 0);
-    verify_ALL(melhores, maxClusters, 6);
 }
 
 
@@ -1035,9 +1032,13 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     FILE *fpDiversidade;
     FILE *fp;
 
+    char buf[0x100];
+    snprintf(buf, sizeof(buf), "Dados_KMEANS/GERACOESKMEANS_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
+    char buf1[0x100];
+    snprintf(buf1, sizeof(buf1), "Dados_KMEANS/DIVERSITYKMEANS_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
 
-    fpMedia = fopen("mediaGeracoes_KMEANS.txt", "w+");
-    fpDiversidade = fopen("mediaDiversity_KMEANS.txt", "w+");
+    fpMedia = fopen(buf, "w+");
+    fpDiversidade = fopen(buf1, "w+");
     fp = fopen("output.txt", "w+");
     gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)
@@ -1154,6 +1155,28 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     fclose(fp);
     fclose(fpMedia);
     fclose(fpDiversidade);
+
+    FILE *in = fopen(buf, "r");
+    
+    if (in != NULL) {
+        double sum = 0, sum_squares = 0, n = 0;
+        double val;
+        
+        while (fscanf(in, "%lf", &val) == 1) {
+            sum += val;
+            sum_squares += val * val;
+            ++n;
+        }
+        fclose(in);
+        
+        if (n > 0) {
+            double mean = (double)sum / n;
+            double variance = (double)sum_squares / n - (mean * mean);
+            double std_dev = sqrt(variance);
+            
+            printf("Mean: %f\nStdDev: %f", mean, std_dev);
+        }
+    }
 
 }
 

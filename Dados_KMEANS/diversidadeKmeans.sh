@@ -1,12 +1,12 @@
 #!/usr/bin/gnuplot
 
 set terminal pdf
-set output 'CLUSTER_FUNCAO1_50DIMENSOES.pdf'
+set output 'DIVERSITYKMEANS_FUNCAO6_50DIMENSOES.pdf'
 
 set encoding iso_8859_1
 set xlabel "Geracao"
 
-set ylabel "Numero de Clusters"
+set ylabel "Diversidade"
 
 set grid
 set style data points
@@ -38,6 +38,6 @@ set style line 11 lc rgb '#808080' lt 1
 set border 3 back ls 11
 set tics nomirror
 
-plot        'CLUSTER_FUNCAO1_50DIMENSOES.txt'   title 'Número de cluster'   with l ls 4
+plot        'DIVERSITYKMEANS_FUNCAO6_50DIMENSOES.txt'   title 'Variacao da diversidade'   with l ls 2
 #'out.txt'   title 'media das geracoes'   with l ls 1, \
             

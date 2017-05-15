@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <windows.h>
+//#include <windows.h>
 #include <assert.h>
 #include <float.h>
 #include <string.h>
@@ -473,9 +473,14 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     FILE *fpDiversidade;
     FILE *fp;
 
+    char buf[0x100];
+    snprintf(buf, sizeof(buf), "DADOS_AGPADRAO/GERACOESPADRAO_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
+    char buf1[0x100];
+    snprintf(buf1, sizeof(buf1), "DADOS_AGPADRAO/DIVERSITYPADRAO_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
 
-    fpMedia = fopen("mediaGeracoes_AGPADRAO.txt", "w+");
-    fpDiversidade = fopen("mediaDiversity_AGPADRAO.txt", "w+");
+    fpMedia = fopen(buf, "w+");
+    fpDiversidade = fopen(buf1, "w+");
+
     fp = fopen("output_AGPADRAO.txt", "w+");
     gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)
@@ -587,6 +592,28 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     fclose(fp);
     fclose(fpMedia);
     fclose(fpDiversidade);
+
+    FILE *in = fopen(buf, "r");
+    
+    if (in != NULL) {
+        double sum = 0, sum_squares = 0, n = 0;
+        double val;
+        
+        while (fscanf(in, "%lf", &val) == 1) {
+            sum += val;
+            sum_squares += val * val;
+            ++n;
+        }
+        fclose(in);
+        
+        if (n > 0) {
+            double mean = (double)sum / n;
+            double variance = (double)sum_squares / n - (mean * mean);
+            double std_dev = sqrt(variance);
+            
+            printf("Mean: %f\nStdDev: %f", mean, std_dev);
+        }
+    }
 
 }
 

@@ -60,6 +60,7 @@ void destroyHabitats(int size)
     free(ind_adj);
 }
 
+
 void singlelink(int total_individuos, int dimensions, double** distances)
 {
     double maxrange;
@@ -121,6 +122,7 @@ void printDendogram(int total_individuos)
     }
     fclose(dendogram);
 }
+
 
 
 void buildHabitats(int total_individuos, double** distances)

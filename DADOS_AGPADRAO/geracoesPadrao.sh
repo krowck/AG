@@ -37,6 +37,7 @@ set grid back ls 12
 set style line 11 lc rgb '#808080' lt 1
 set border 3 back ls 11
 set tics nomirror
+set logscale y 2
 
 plot        'GERACOESPADRAO_FUNCAO6_50DIMENSOES.txt'   title 'Media das Geracoes'   with l ls 1
             # 'media.txt'   title 'media das medias'   with l ls 2, \

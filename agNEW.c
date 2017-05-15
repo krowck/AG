@@ -541,6 +541,7 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos)
     initHabitats(total_individuos);
     distancia = distancia_euclidiana(populacao, total_individuos);
     singlelink(total_individuos, NVARS, distancia);
+    printDendogram(total_individuos);
     buildHabitats(total_individuos, distancia);
 
     for (i = 0; i < g_habitatsSize; ++i)
@@ -702,7 +703,6 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
         {
             pai = melhores[vetor_pai[i]];
             mae = melhores[vetor_pai[i+1]];
-            //op_crossover(&pai, &mae, funcao);
             op_uniformcrossover(&pai, &mae, funcao);
             op_mutacao(&pai,prob_mutacao,funcao);
             op_mutacao(&mae,prob_mutacao,funcao);
@@ -712,17 +712,11 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
             cont += 2;
         }
     }
-
-    
-
     if (flag == 1)
     {
         novos_individuos[cont] = melhores[vetor_pai[cont]];
         maxClusters++;
     }
-
-
-
     op_selecao_de_sobreviventes(melhores, maxClusters, novos_individuos, 0);
 }
 
@@ -795,9 +789,7 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
     encontra_melhor_individuo(melhores, maxClusters, &best_melhores);
 
     novos_individuos[total_individuos-2] = best_melhores;
-    //imprimir_populacao(novos_individuos, total_individuos);
     op_selecao_de_sobreviventes(populacao, total_individuos, novos_individuos, 0);
-    //imprimir_populacao(populacao, total_individuos);
 }
 
 
@@ -854,10 +846,7 @@ void executar(int funcao, int total_individuos, int geracoes){
         double prob_mutacao = 0.2;
         double minMutationRate = 0.02;
         m_nmdf = 0.0;        
-        
-        /*
-         * A Populacao e representada como um vetor de "t_individuo", cujo o tamanho e "total_individuos" (definido previamente pelo usuario).
-         */
+
         t_individuo populacao[total_individuos];
         
         gerar_populacao_inicial(populacao, total_individuos, funcao);
@@ -895,22 +884,21 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             double diversidade = diversity_population(populacao, total_individuos);
 
-            //mergeSort(populacao, total_individuos);
-            //imprimir_populacao(populacao, total_individuos);
+            encontra_melhor_individuo(populacao, total_individuos, &best_after);
 
-            populacao[total_individuos-1] = best;
-
-            // encontra_melhor_individuo(populacao, total_individuos, &best_after);
-
-            // populacao[total_individuos-2] = best_after;
+            if (best_after.fitness < best.fitness)
+            {
+                populacao[total_individuos-1] = best_after;
+            }
+            else
+            {
+                populacao[total_individuos-1] = best;
+            }
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            // Saida de Dados
             fprintf(fp, "%d %.10f %f\n", g, best.fitness, diversidade);
-            //printf("%d\t%f  ",g,best.fitness); //saida de dados
-            //printf("  %f\n", diversidade);
-            //printf("%lf\n", prob_mutacao);
+
             prob_mutacao -= 0.001;
 
             if (prob_mutacao <= minMutationRate)
@@ -926,8 +914,6 @@ void executar(int funcao, int total_individuos, int geracoes){
         }
         printf("%d\n", run);
         //imprimir_populacao(populacao, total_individuos);
-        //fprintf(fp, "-------------------------------");    
-        //sleep(10);
     }
     gettimeofday(&timevalB,NULL);
 

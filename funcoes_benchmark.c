@@ -114,7 +114,7 @@ float zakharov(double cromossomo[])
 	for (i = 0; i < NVARS; i++)
         {
         	aux = aux + pow(cromossomo[i],2.0);
-	   	aux1 = aux1+0.5*i*cromossomo[i];
+	   		aux1 = aux1+0.5*i*cromossomo[i];
         }
 	obj =  ( aux+pow(aux1,2.0)+pow(aux1,4.0) );
 

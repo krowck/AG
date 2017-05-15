@@ -726,7 +726,7 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
     op_selecao_de_sobreviventes(melhores, maxClusters, novos_individuos, 0);
 }
 
-void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int total_individuos, int maxClusters, double prob_mutacao, int funcao)
+void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int total_individuos, int maxClusters, double prob_mutacao, int funcao, t_individuo best_melhores)
 {
     int i, j;
     t_individuo novos_individuos[total_individuos];
@@ -755,7 +755,7 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
     for (i = 0; i < total_individuos; ++i)
     {
         u = nextDouble();
-        if (u < 0.99999)
+        if (u < 0.9999)
         {
             if (vetor_pai[i] >= total_individuos)
             {
@@ -792,6 +792,9 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
             novos_individuos[i] = new_individuo;
         }     
     }
+    encontra_melhor_individuo(melhores, maxClusters, &best_melhores);
+
+    novos_individuos[total_individuos-2] = best_melhores;
     //imprimir_populacao(novos_individuos, total_individuos);
     op_selecao_de_sobreviventes(populacao, total_individuos, novos_individuos, 0);
     //imprimir_populacao(populacao, total_individuos);
@@ -869,6 +872,7 @@ void executar(int funcao, int total_individuos, int geracoes){
             t_individuo populacao_aux[total_individuos];
             t_individuo best;
             t_individuo best_after;
+            t_individuo best_melhores;
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
@@ -887,7 +891,7 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             memcpy(populacao, populacao_aux, sizeof(t_individuo)*total_individuos);
 
-            generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao);
+            generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao, best_melhores);
 
             double diversidade = diversity_population(populacao, total_individuos);
 
@@ -896,14 +900,14 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             populacao[total_individuos-1] = best;
 
-            encontra_melhor_individuo(populacao, total_individuos, &best_after);
+            // encontra_melhor_individuo(populacao, total_individuos, &best_after);
 
-            populacao[total_individuos-2] = best_after;
+            // populacao[total_individuos-2] = best_after;
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
             // Saida de Dados
-            fprintf(fp, "%d %f %f\n", g, best.fitness, diversidade);
+            fprintf(fp, "%d %.10f %f\n", g, best.fitness, diversidade);
             //printf("%d\t%f  ",g,best.fitness); //saida de dados
             //printf("  %f\n", diversidade);
             //printf("%lf\n", prob_mutacao);
@@ -948,8 +952,8 @@ void executar(int funcao, int total_individuos, int geracoes){
         }
         mediaDiversity[i] = mediaDiversity[i]/(double)RUNS;
         mediabest[i] = mediabest[i]/(double)RUNS;
-        fprintf(fpMedia, "%f\n", mediabest[i]);
-        fprintf(fpDiversidade, "%f\n", mediaDiversity[i]);
+        fprintf(fpMedia, "%.10f\n", mediabest[i]);
+        fprintf(fpDiversidade, "%.10f\n", mediaDiversity[i]);
     }
 
     fclose(fp);

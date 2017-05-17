@@ -1,7 +1,7 @@
 #!/usr/bin/gnuplot
 
 set terminal pdf
-set output 'GERACOESKMEANS_FUNCAO6_50DIMENSOES.pdf'
+set output 'GERACOESKMEANS_FUNCAO8_50DIMENSOES.pdf'
 
 set encoding iso_8859_1
 set xlabel "Geracao"
@@ -39,6 +39,6 @@ set border 3 back ls 11
 set tics nomirror
 set logscale y 2
 
-plot        'GERACOESKMEANS_FUNCAO6_50DIMENSOES.txt'   title 'Media das Geracoes'   with l ls 1
+plot        'GERACOESKMEANS_FUNCAO8_50DIMENSOES.txt'   title 'Media das Geracoes'   with l ls 1
             # 'media.txt'   title 'media das medias'   with l ls 2, \
             # 'diversidade.txt' title 'diversidade' with l ls 3

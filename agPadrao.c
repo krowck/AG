@@ -589,31 +589,23 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
         fprintf(fpDiversidade, "%f\n", mediaDiversity[i]);
     }
 
+    double sum = 0, sum_squares = 0;
+
+    for (int i = 0; i < RUNS; ++i)
+    {
+        sum_squares += vet_melhores[i][geracoes-1] * vet_melhores[i][geracoes-1];
+        sum += vet_melhores[i][geracoes-1];        
+    }
+
+    double mean = (double)sum / RUNS;
+    double variance = (double)sum_squares / RUNS - (mean * mean);
+    double std_dev = sqrt(variance);
+
+    printf("Mean: %f\nStdDev: %f", mean, std_dev);
+
     fclose(fp);
     fclose(fpMedia);
     fclose(fpDiversidade);
-
-    FILE *in = fopen(buf, "r");
-    
-    if (in != NULL) {
-        double sum = 0, sum_squares = 0, n = 0;
-        double val;
-        
-        while (fscanf(in, "%lf", &val) == 1) {
-            sum += val;
-            sum_squares += val * val;
-            ++n;
-        }
-        fclose(in);
-        
-        if (n > 0) {
-            double mean = (double)sum / n;
-            double variance = (double)sum_squares / n - (mean * mean);
-            double std_dev = sqrt(variance);
-            
-            printf("Mean: %f\nStdDev: %f", mean, std_dev);
-        }
-    }
 
 }
 

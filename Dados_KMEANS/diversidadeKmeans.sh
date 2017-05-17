@@ -1,7 +1,7 @@
 #!/usr/bin/gnuplot
 
 set terminal pdf
-set output 'DIVERSITYKMEANS_FUNCAO6_50DIMENSOES.pdf'
+set output 'DIVERSITYKMEANS_FUNCAO1_50DIMENSOES.pdf'
 
 set encoding iso_8859_1
 set xlabel "Geracao"
@@ -38,6 +38,6 @@ set style line 11 lc rgb '#808080' lt 1
 set border 3 back ls 11
 set tics nomirror
 
-plot        'DIVERSITYKMEANS_FUNCAO6_50DIMENSOES.txt'   title 'Variacao da diversidade'   with l ls 2
+plot        'DIVERSITYKMEANS_FUNCAO1_50DIMENSOES.txt'   title 'Variacao da diversidade'   with l ls 2
 #'out.txt'   title 'media das geracoes'   with l ls 1, \
             

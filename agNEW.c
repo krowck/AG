@@ -14,6 +14,7 @@
 #include <string.h>
 #include <float.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include "./src-clstr/cluster.h" 
 #include "funcoes_benchmark.h"
@@ -356,7 +357,7 @@ void op_uniformcrossover(t_individuo *pai, t_individuo *mae, int funcao)
  *  - os pais a serem selecionados no torneio ("pai" e "mae"). [SELECAO POR TORNEIO, onde a letra grega "tau" = 3]
  */
 void op_selecao_de_pais(t_individuo populacao[], int total_individuos, t_individuo *pai, t_individuo *mae){
-    t_individuo sorteio[TAM_TORNEIO]; //valor eh 3 pois foi definido no enunciado, isto e, letra grega "tau" = 3
+    t_individuo sorteio[TAM_TORNEIO];
     int i;
 
 
@@ -533,7 +534,7 @@ void freeDistances(int total_individuos)
     free(distances);
 }
 
-void clusterAnalysis(t_individuo populacao[], int total_individuos)
+void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes)
 {   
     int i, j;
     double **distancia;
@@ -541,8 +542,8 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos)
     initHabitats(total_individuos);
     distancia = distancia_euclidiana(populacao, total_individuos);
     singlelink(total_individuos, NVARS, distancia);
-    printDendogram(total_individuos);
     buildHabitats(total_individuos, distancia);
+    printDendogram(total_individuos, geracoes);
 
     for (i = 0; i < g_habitatsSize; ++i)
     {
@@ -865,7 +866,7 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            clusterAnalysis(populacao, total_individuos);
+            clusterAnalysis(populacao, total_individuos, g);
 
             maxClusters = g_habitatsSize;
             t_individuo melhores[maxClusters];
@@ -942,32 +943,23 @@ void executar(int funcao, int total_individuos, int geracoes){
         fprintf(fpDiversidade, "%.10f\n", mediaDiversity[i]);
     }
 
+    double sum = 0, sum_squares = 0;
+
+    for (int i = 0; i < RUNS; ++i)
+    {
+        sum_squares += vet_melhores[i][geracoes-1] * vet_melhores[i][geracoes-1];
+        sum += vet_melhores[i][geracoes-1];        
+    }
+
+    double mean = (double)sum / RUNS;
+    double variance = (double)sum_squares / RUNS - (mean * mean);
+    double std_dev = sqrt(variance);
+
+    printf("Mean: %f\nStdDev: %f", mean, std_dev);
+
     fclose(fp);
     fclose(fpMedia);
     fclose(fpDiversidade);
     fclose(fpNumeroCluster);
-
-    FILE *in = fopen(buf, "r");
-    
-    if (in != NULL) {
-        double sum = 0, sum_squares = 0, n = 0;
-        double val;
-        
-        while (fscanf(in, "%lf", &val) == 1) {
-            sum += val;
-            sum_squares += val * val;
-            ++n;
-        }
-        fclose(in);
-        
-        if (n > 0) {
-            double mean = (double)sum / n;
-            double variance = (double)sum_squares / n - (mean * mean);
-            double std_dev = sqrt(variance);
-            
-            printf("Mean: %f\nStdDev: %f", mean, std_dev);
-        }
-    }
-
 }
 

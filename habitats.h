@@ -100,26 +100,29 @@ void singlelink(int total_individuos, int dimensions, double** distances)
     //printf("\n\n\n");   
 }
 
-void printDendogram(int total_individuos)
+void printDendogram(int total_individuos, int g)
 {
     unsigned short int i=0;
     FILE *dendogram;
-    dendogram = fopen("dendogram.txt", "w+");
-    for(i=0; i< total_individuos-1; i++)
+    dendogram = fopen("dendogram.txt", "a");
+    if (g % 3333 == 0)
     {
-        if (g_tree[i].left >= 0 && g_tree[i].right >= 0)
-            fprintf(dendogram, "%d  %d          %f\n", g_tree[i].left+1, g_tree[i].right+1, g_tree[i].distance);
-            //printf("%d  %d          %f\n", g_tree[i].left+1, g_tree[i].right+1, g_tree[i].distance);
-        if (g_tree[i].left >= 0 && g_tree[i].right < 0)
-            fprintf(dendogram, "%d  %d          %f\n", g_tree[i].left+1, (-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
-            //printf("%d  %d          %f\n", g_tree[i].left+1, (-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
-        if (g_tree[i].left < 0 && g_tree[i].right >= 0)
-            fprintf(dendogram, "%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos, g_tree[i].right+1, g_tree[i].distance);
-            //printf("%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos, g_tree[i].right+1, g_tree[i].distance);
-        if (g_tree[i].left < 0 && g_tree[i].right < 0)
-            fprintf(dendogram, "%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos,(-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
-            //printf("%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos,(-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
-    }
+        for(i=0; i< total_individuos-1; i++)
+        {
+            if (g_tree[i].left >= 0 && g_tree[i].right >= 0)
+                fprintf(dendogram, "%d  %d          %f\n", g_tree[i].left+1, g_tree[i].right+1, g_tree[i].distance);
+                //printf("%d  %d          %f\n", g_tree[i].left+1, g_tree[i].right+1, g_tree[i].distance);
+            if (g_tree[i].left >= 0 && g_tree[i].right < 0)
+                fprintf(dendogram, "%d  %d          %f\n", g_tree[i].left+1, (-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
+                //printf("%d  %d          %f\n", g_tree[i].left+1, (-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
+            if (g_tree[i].left < 0 && g_tree[i].right >= 0)
+                fprintf(dendogram, "%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos, g_tree[i].right+1, g_tree[i].distance);
+                //printf("%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos, g_tree[i].right+1, g_tree[i].distance);
+            if (g_tree[i].left < 0 && g_tree[i].right < 0)
+                fprintf(dendogram, "%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos,(-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
+                //printf("%d  %d          %f\n", (-1*g_tree[i].left)+total_individuos,(-1*g_tree[i].right)+total_individuos, g_tree[i].distance);
+        }
+    }    
     fclose(dendogram);
 }
 

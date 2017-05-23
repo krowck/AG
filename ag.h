@@ -15,8 +15,8 @@
 typedef struct {
     double gene[NVARS];
     double fitness;
-    double upper[NVARS];
-    double lower[NVARS];
+    int index;
+    double distance;
 } t_individuo;
 
 void merge(t_individuo vet[], int tam_vet);

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-//#include <windows.h>
+#include <windows.h>
 #include <assert.h>
 #include <string.h>
 #include <float.h>
@@ -24,6 +24,8 @@
 #define TAM_TORNEIO 5
 #define RUNS 5
 
+
+
 double m_nmdf = 0;
 double **distances;
 
@@ -34,7 +36,7 @@ typedef struct {
     double gene[NVARS];
     double fitness;
     int index;
-    double distanceFromCenter;
+    double distance;
 } t_individuo;
 
 void merge(t_individuo vet[], int tam_vet) {
@@ -177,6 +179,27 @@ void encontra_melhor_individuo(t_individuo vet[], int tam_vet, t_individuo *melh
             *melhor = vet[i];
         }            
     }
+}
+
+void encontra_pior_individuo(t_individuo vet[], int tam_vet, t_individuo *melhor){
+    int i;
+    *melhor = vet[0];
+    for(i = 1; i < tam_vet; i++){
+        if (vet[i].fitness > melhor->fitness){
+            *melhor = vet[i];
+        }            
+    }
+}
+
+double encontra_media_populacao(t_individuo pop[], int total_individuos)
+{
+    int i;
+    double sum = 0;
+    for (i = 0; i < total_individuos; ++i)
+    {
+        sum += pop[i].fitness;
+    }
+    return sum/total_individuos;
 }
 
 
@@ -509,8 +532,6 @@ double** distancia_euclidiana(t_individuo pop[], int total_individuos)
         }
     }
     return distances;
-
-
 }
 
 
@@ -521,7 +542,6 @@ void op_selecao_de_sobreviventes(t_individuo populacao[], int total_individuos, 
         populacao[i] = novos_individuos[j];
         j++;
     }
-
 }
 
 void freeDistances(int total_individuos)
@@ -534,30 +554,142 @@ void freeDistances(int total_individuos)
     free(distances);
 }
 
-void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes)
+void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes, t_individuo populacao_aux2[])
 {   
-    int i, j;
+    int i, j, k;
     double **distancia;
+    double *aux = (double*) malloc(total_individuos*sizeof(double)) ;
+    int *index = (int*) malloc(total_individuos*sizeof(int));
+    int g_habitatsSizeAntes = 0;
 
     initHabitats(total_individuos);
     distancia = distancia_euclidiana(populacao, total_individuos);
-    singlelink(total_individuos, NVARS, distancia);
+    singlelink(total_individuos, NVARS, distancia, aux);
     buildHabitats(total_individuos, distancia);
     printDendogram(total_individuos, geracoes);
+
+    for (i = 0; i < total_individuos; ++i)
+    {
+        populacao[i].distance = aux[i];
+        index[i] = 0;
+    }
 
     for (i = 0; i < g_habitatsSize; ++i)
     {
         for (j = 0; j < H[i].h_ind_count; ++j)
         {
             populacao[H[i].h_ind[j]].index = i;
+            //printf("%d = %d\n", H[i].h_ind[j], populacao[H[i].h_ind[j]].index);
         }       
     }
+
+    for (i = 0; i < g_habitatsSize-1; ++i)
+    {        
+        for (k = i+1; k < g_habitatsSize-1; ++k)
+        {
+            if(fabs(populacao[H[i].h_ind[0]].distance - populacao[H[k].h_ind[0]].distance) < 0.05)
+            {
+                for (j = 0; j < H[k].h_ind_count; ++j)
+                {
+                    populacao[H[k].h_ind[j]].index = i;
+                    H[i].h_ind_count++;
+                    H[i].h_ind[H[k].h_ind[j]] = H[k].h_ind[j];
+                    //flag[H[k].h_ind[j]]++;
+                    //printf("%d   %d    %d = %d\n",H[i].h_ind[H[k].h_ind[j]], H[k].h_ind[j], H[k].h_ind[j], populacao[H[k].h_ind[j]].index);
+                    H[k].h_ind[j] = -1;
+                }
+                H[k].h_ind_count = 0;
+            }
+        }     
+    }   
+
+    // for (i = 0; i < g_habitatsSize-1; ++i)
+    // {        
+    //     if(fabs(populacao[H[i].h_ind[0]].distance - populacao[H[g_habitatsSize-i-1].h_ind[0]].distance) < 0.08)
+    //     {
+    //         for (j = 0; j < H[i+1].h_ind_count; ++j)
+    //         {
+    //             populacao[H[i+1].h_ind[j]].index = i;
+    //             H[i].h_ind_count++;
+    //             H[i].h_ind[H[i+1].h_ind[j]] = H[i+1].h_ind[j];
+    //             H[i+1].h_ind[j] = -1;
+    //         }
+    //         H[i+1].h_ind_count = 0;
+    //     }   
+    // }   
+    g_habitatsSizeAntes = g_habitatsSize;
+    //printf("Habitats antes = %d\n",g_habitatsSizeAntes);
+    for (i = 0; i < total_individuos; ++i)
+    {
+        index[populacao[i].index]++;
+
+    }
+    g_habitatsSize = 0;
+    for (i = 0; i < total_individuos; ++i)
+    {
+        //printf("index = %d\n", index[i]);
+        if(index[i] != 0)
+        {
+            g_habitatsSize++;
+        }
+    }
+    //printf("Habitats depois = %d\n",g_habitatsSize );
+    for (i = 0; i < total_individuos; ++i)
+    {
+        if (populacao[i].index > g_habitatsSize-1)
+        {
+            populacao[i].index = populacao[i].index - (g_habitatsSizeAntes - g_habitatsSize);
+        }
+    }
+
+    // for (k = 0; k < g_habitatsSizeAntes - g_habitatsSize; ++k)
+    // {
+    //     for (i = 0; i < g_habitatsSizeAntes; ++i)
+    //     {
+    //         if(index[i] == 0)
+    //         {
+    //             for (j = 0; j < H[i+1].h_ind_count; ++j)
+    //             {
+    //                 {
+    //                     H[i].h_ind_count++;
+    //                     H[i].h_ind[j] = H[i+1].h_ind[j];
+    //                 }
+    //             }
+    //             H[i+1].h_ind_count=0;
+    //             index[i] = H[i].h_ind_count;
+    //             index[i+1] = 0;
+
+    //         }       
+    //     }
+    // }
+
+    free(index);
+    free(aux);
     freeDistances(total_individuos);
     destroyHabitats(total_individuos);
 }
 
-void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double *distanceFromCenter, double killIndex, int funcao, int total_individuos, 
-    double prob_mutacao, int *comecar, t_individuo populacao_aux[], t_individuo melhores[])
+void verify_ALL(t_individuo populacao[], int total_individuos, int g)
+{
+    int i, j;
+    for (i = 0; i < total_individuos; ++i)
+    {
+        for (j = 0; j < NVARS; ++j)
+        {
+            if(populacao[i].gene[j] == 0.000000)
+            {
+                printf("%d\n",total_individuos);
+                imprimir_individuo(populacao[i]);
+                printf("INDIVIDUO: %d \n WARNING, TRETA %d\n",i, g);
+                Sleep(1000);
+                imprimir_populacao(populacao, total_individuos);
+            }
+        }
+    }
+}
+
+void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_individuos, double prob_mutacao, 
+    int *comecar, t_individuo populacao_aux[], t_individuo melhores[], int maxClusters, t_individuo best)
 {
     int numberOfChromosomes = 0;
     int flag = 0, cont = 0, cont2 = 0;
@@ -579,9 +711,7 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
             aux++;
             numberOfChromosomes++;
         }
-    }  
-
-    //printf("%d\n", numberOfChromosomes);
+    }
 
     double percentageChromosomesToCrossover = 0.8;
     int totalChromosomesToCrossover = round(percentageChromosomesToCrossover * numberOfChromosomes);
@@ -590,25 +720,26 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
     int vetor_pai[numberOfChromosomes];
     t_individuo novos_individuos[aux];
 
+    // if (totalChromosomesToCrossover == 0)
+    // {
+    //     return;
+    // }
+
     for (i = 0; i < numberOfChromosomes; ++i)
     {
         vetor_aux[i] = i;
     }
 
     shuffle(vetor_aux, numberOfChromosomes);
-    //printf("Total de individuos: %d  & Total de pais: %d\n", numberOfChromosomes, totalChromosomesToCrossover);
 
     for (i = 0; i < totalChromosomesToCrossover; ++i)
     {
         vetor_pai[i] = vetor_aux[i];
         cont2++;
-        //printf("VETOR DE PAIS: %d  %d\n", vetor_pai[i], i);
     }
-    //printf("\n\n");
     for (i = cont2; i < numberOfChromosomes; ++i)
     {
         vetor_pai[i] = vetor_aux[i];
-        //printf("VETOR DE NAO PAIS: %d  %d\n", vetor_pai[i], i);
     }
 
     if (totalChromosomesToCrossover%2 == 1 && totalChromosomesToCrossover > 2)
@@ -627,13 +758,7 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
         {      
             pai = pop_aux[vetor_pai[i]];
             mae = pop_aux[vetor_pai[i+1]];
-            //u = obter_numero_uniforme();
-            //if (u < 0.9)
-            //{
-                //printf("%f\n", u);
-            //op_crossover(&pai, &mae, funcao);
             op_uniformcrossover(&pai, &mae, funcao);
-            //}
             op_mutacao(&pai,prob_mutacao,funcao);
             op_mutacao(&mae,prob_mutacao,funcao);
             novos_individuos[i] = pai;
@@ -646,10 +771,7 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
     if (flag == 1)
     {
         novos_individuos[cont] = pop_aux[vetor_pai[totalChromosomesToCrossover]];
-        //op_selecao_de_sobreviventes(populacao_aux, totalChromosomesToCrossover+1, novos_individuos, *comecar);
         totalChromosomesToCrossover++;
-        //*comecar += totalChromosomesToCrossover;
-        //int flag = 0;
     }
 
     for (i = cont2; i < numberOfChromosomes; ++i)
@@ -661,9 +783,15 @@ void improveCluster(t_individuo populacao[], double *clusterID, int alvo, double
 
     *comecar += numberOfChromosomes;    
 
-    if(numberOfChromosomes != 0){
+    if(numberOfChromosomes != 0)
+    {
         encontra_melhor_individuo(novos_individuos, numberOfChromosomes, &melhor);
-        melhores[alvo] = melhor;    
+        melhores[alvo] = melhor;
+    }
+    else
+    {
+        melhores[alvo] = best;
+        //gerar_individuo(&melhores[alvo], funcao);
     }
 }
 
@@ -719,6 +847,7 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
         maxClusters++;
     }
     op_selecao_de_sobreviventes(melhores, maxClusters, novos_individuos, 0);
+    //imprimir_populacao(melhores, maxClusters);
 }
 
 void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int total_individuos, int maxClusters, double prob_mutacao, int funcao, t_individuo best_melhores)
@@ -756,7 +885,7 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
             {
                 for (j = 0; j < NVARS; ++j)
                 {
-                    if (melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] < l_inf*2 || melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] > l_sup*2)
+                    if (melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] < l_inf*2 || melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] > l_sup*2 || melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] == 0.000)
                     {
                         flag = 1;
                     }
@@ -793,6 +922,39 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
     op_selecao_de_sobreviventes(populacao, total_individuos, novos_individuos, 0);
 }
 
+void escalonamento_linear(t_individuo pop[], double c, int total_individuos)
+{
+    t_individuo melhor;
+    t_individuo pior;
+    double alpha, beta, media;
+    int i;
+    encontra_melhor_individuo(pop, total_individuos, &melhor);
+    encontra_pior_individuo(pop, total_individuos, &pior);
+    media = encontra_media_populacao(pop, total_individuos);
+    
+    if(pior.fitness > (c*media-melhor.fitness)/(c-1.0))
+    {
+        alpha = (media*(c-1.0)/(melhor.fitness-media));
+        beta = (media*(melhor.fitness-c*media)/(melhor.fitness-media));
+    }
+    else
+    {
+        alpha = media/(media-pior.fitness);
+        beta = -pior.fitness*media/(media-pior.fitness);
+    }
+        
+    for (i = 0; i < total_individuos; ++i)
+    {
+        pop[i].fitness = pop[i].fitness * alpha + beta;
+        if (pop[i].fitness < 0 || pop[i].fitness == 0.000)
+        {
+
+            pop[i].fitness = 0.001;
+        }
+    }
+
+}
+    
 
 
 
@@ -812,6 +974,7 @@ void executar(int funcao, int total_individuos, int geracoes){
     int run;
     int i;
     int j;
+
 
     double **vet_melhores = (double **)malloc(RUNS * sizeof(double*));
         for(int i = 0; i < RUNS; i++) vet_melhores[i] = (double *)malloc(geracoes * sizeof(double));
@@ -841,6 +1004,9 @@ void executar(int funcao, int total_individuos, int geracoes){
     gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)
     {
+        double aux_inicio = 0.3*geracoes;
+        double aux_final = 0.8*geracoes;
+        int c = 1.2;
         double firstnessIndex = 2;
         double killIndex = firstnessIndex + 1;
         int maxClusters = 0;
@@ -860,21 +1026,35 @@ void executar(int funcao, int total_individuos, int geracoes){
             int comecar = 0;
 
             t_individuo populacao_aux[total_individuos];
+            t_individuo populacao_aux2[total_individuos];
             t_individuo best;
             t_individuo best_after;
-            t_individuo best_melhores;
+            t_individuo best_melhores;            
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            clusterAnalysis(populacao, total_individuos, g);
+            clusterAnalysis(populacao, total_individuos, g, populacao_aux2);
+
+            // if(g < aux_inicio)
+            // {
+            //     escalonamento_linear(populacao, 1.2, total_individuos);
+            // }            
+            // else if(g > aux_final)
+            // {
+            //     escalonamento_linear(populacao, 2.0, total_individuos);
+            // }                
+            // else
+            // {
+            //     c += 0.8/(aux_final - aux_inicio);
+            //     escalonamento_linear(populacao, c, total_individuos);
+            // }
 
             maxClusters = g_habitatsSize;
             t_individuo melhores[maxClusters];
 
             for (i = 0; i < maxClusters; ++i)
             {
-
-                improveCluster(populacao, clusterID, i, distanceFromCenter, killIndex, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores);
+                improveCluster(populacao, i, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores, maxClusters, best);
             }
 
             improveIdeals(melhores, maxClusters, funcao, prob_mutacao);   
@@ -895,7 +1075,7 @@ void executar(int funcao, int total_individuos, int geracoes){
             {
                 populacao[total_individuos-1] = best;
             }
-
+                
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
             fprintf(fp, "%d %.10f %f\n", g, best.fitness, diversidade);

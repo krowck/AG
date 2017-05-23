@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "gerador_numeros.h"
+//#include "ag.h"
 
 /**************************************************************************
         ALGORITMO DE CLUSTERIZAÇÃO - SINGLE LINK
@@ -61,7 +62,7 @@ void destroyHabitats(int size)
 }
 
 
-void singlelink(int total_individuos, int dimensions, double** distances)
+void singlelink(int total_individuos, int dimensions, double** distances, double* aux)
 {
     double maxrange;
     double minrange;
@@ -95,7 +96,8 @@ void singlelink(int total_individuos, int dimensions, double** distances)
     for (i = 0 ;i < total_individuos-1;i++)
     {
             g_tree[i].distance=(MAXVAL-MINVAL)/(double)(maxrange-minrange)*g_tree[i].distance-(MAXVAL-MINVAL)/(double)(maxrange-minrange)*minrange+MINVAL;
-            //printf("%lf\n", g_tree[i].distance);
+            aux[i] = g_tree[i].distance;
+            //pop[i].distance = g_tree[i].distance;
     }
     //printf("\n\n\n");   
 }

@@ -1,0 +1,34 @@
+1 -
+tempo de execucao: 2.501748
+Mean: 0.096284
+StdDev: 0.027431
+
+3 -
+tempo de execucao: 1.598853
+Mean: 70.920721
+StdDev: 42.097103
+
+4 -
+tempo de execucao: 2.395382
+Mean: 1271.943433
+StdDev: 462.563973
+
+5 -
+tempo de execucao: 2.610120
+Mean: 0.052624
+StdDev: 0.005928
+
+6 - 
+tempo de execucao: 2.798120
+Mean: 0.000022
+StdDev: 0.000007
+
+7 -
+tempo de execucao: 1.818316
+Mean: 0.413206
+StdDev: 0.097495
+
+8 - 
+tempo de execucao: 1.639418
+Mean: 1.595946
+StdDev: 0.408896

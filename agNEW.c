@@ -1135,7 +1135,7 @@ void executar(int funcao, int total_individuos, int geracoes){
     double variance = (double)sum_squares / RUNS - (mean * mean);
     double std_dev = sqrt(variance);
 
-    printf("Mean: %f\nStdDev: %f", mean, std_dev);
+    printf("Mean: %f +/- %f", mean, std_dev);
 
     fclose(fp);
     fclose(fpMedia);

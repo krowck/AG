@@ -587,7 +587,7 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes
     {        
         for (k = i+1; k < g_habitatsSize-1; ++k)
         {
-            if(fabs(populacao[H[i].h_ind[0]].distance - populacao[H[k].h_ind[0]].distance) < 0.05)
+            if(fabs(populacao[H[i].h_ind[0]].distance - populacao[H[k].h_ind[0]].distance) < 0.08)
             {
                 for (j = 0; j < H[k].h_ind_count; ++j)
                 {

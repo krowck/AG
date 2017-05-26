@@ -554,13 +554,40 @@ void freeDistances(int total_individuos)
     free(distances);
 }
 
-void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes, t_individuo populacao_aux2[])
+void verify_ALL(t_individuo populacao[], int total_individuos, int g, int gg)
+{
+    int i, j;
+    int flag = 0;
+    for (i = 0; i < total_individuos; ++i)
+    {
+        for (j = 0; j < NVARS; ++j)
+        {
+            if(populacao[i].gene[j] == 0.000000)
+            {
+                flag = 1;
+            }
+        }
+        if (flag == 1)
+        {
+            printf("Geracao: %d INDIVIDUO: %d WARNING, NUMBER DA TRETA: %d CLUSTER: %d\n",g, i, gg, populacao[i].index);
+        }
+    }
+    if (flag == 1)
+    {
+        Sleep(5000);
+    }
+}
+
+void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes, double u)
 {   
     int i, j, k;
     double **distancia;
     double *aux = (double*) malloc(total_individuos*sizeof(double)) ;
     int *index = (int*) malloc(total_individuos*sizeof(int));
     int g_habitatsSizeAntes = 0;
+    //printf("%d\n", geracoes);
+
+    //verify_ALL(populacao, total_individuos, geracoes, 2);
 
     initHabitats(total_individuos);
     distancia = distancia_euclidiana(populacao, total_individuos);
@@ -583,11 +610,12 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes
         }       
     }
 
+    
     for (i = 0; i < g_habitatsSize-1; ++i)
     {        
-        for (k = i+1; k < g_habitatsSize-1; ++k)
+        for (k = i+1; k < g_habitatsSize; ++k)
         {
-            if(fabs(populacao[H[i].h_ind[0]].distance - populacao[H[k].h_ind[0]].distance) < 0.08)
+            if(fabs(populacao[H[i].h_ind[0]].distance - populacao[H[k].h_ind[0]].distance) < u)
             {
                 for (j = 0; j < H[k].h_ind_count; ++j)
                 {
@@ -596,33 +624,18 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes
                     H[i].h_ind[H[k].h_ind[j]] = H[k].h_ind[j];
                     //flag[H[k].h_ind[j]]++;
                     //printf("%d   %d    %d = %d\n",H[i].h_ind[H[k].h_ind[j]], H[k].h_ind[j], H[k].h_ind[j], populacao[H[k].h_ind[j]].index);
-                    H[k].h_ind[j] = -1;
+                    //H[k].h_ind[j] = -1;
                 }
                 H[k].h_ind_count = 0;
             }
         }     
     }   
 
-    // for (i = 0; i < g_habitatsSize-1; ++i)
-    // {        
-    //     if(fabs(populacao[H[i].h_ind[0]].distance - populacao[H[g_habitatsSize-i-1].h_ind[0]].distance) < 0.08)
-    //     {
-    //         for (j = 0; j < H[i+1].h_ind_count; ++j)
-    //         {
-    //             populacao[H[i+1].h_ind[j]].index = i;
-    //             H[i].h_ind_count++;
-    //             H[i].h_ind[H[i+1].h_ind[j]] = H[i+1].h_ind[j];
-    //             H[i+1].h_ind[j] = -1;
-    //         }
-    //         H[i+1].h_ind_count = 0;
-    //     }   
-    // }   
     g_habitatsSizeAntes = g_habitatsSize;
     //printf("Habitats antes = %d\n",g_habitatsSizeAntes);
     for (i = 0; i < total_individuos; ++i)
     {
         index[populacao[i].index]++;
-
     }
     g_habitatsSize = 0;
     for (i = 0; i < total_individuos; ++i)
@@ -634,13 +647,6 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes
         }
     }
     //printf("Habitats depois = %d\n",g_habitatsSize );
-    for (i = 0; i < total_individuos; ++i)
-    {
-        if (populacao[i].index > g_habitatsSize-1)
-        {
-            populacao[i].index = populacao[i].index - (g_habitatsSizeAntes - g_habitatsSize);
-        }
-    }
 
     // for (k = 0; k < g_habitatsSizeAntes - g_habitatsSize; ++k)
     // {
@@ -650,18 +656,32 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes
     //         {
     //             for (j = 0; j < H[i+1].h_ind_count; ++j)
     //             {
-    //                 {
-    //                     H[i].h_ind_count++;
-    //                     H[i].h_ind[j] = H[i+1].h_ind[j];
-    //                 }
+    //                 H[i].h_ind_count++;
+    //                 H[i].h_ind[j] = H[i+1].h_ind[j];
     //             }
     //             H[i+1].h_ind_count=0;
     //             index[i] = H[i].h_ind_count;
     //             index[i+1] = 0;
-
     //         }       
     //     }
     // }
+
+    for (i = 0; i < total_individuos; ++i)
+    {
+        if (populacao[i].index > g_habitatsSize-1)
+        {
+            for (k = 0; k < g_habitatsSize; ++k)
+            {
+                if(index[k] == 0 || populacao[i].index == index[k])
+                {
+                    populacao[i].index = index[k];
+                    index[k] = populacao[i].index;
+                }
+            }
+        }
+    }
+
+    verify_ALL(populacao, total_individuos, geracoes, 1);
 
     free(index);
     free(aux);
@@ -669,24 +689,7 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes
     destroyHabitats(total_individuos);
 }
 
-void verify_ALL(t_individuo populacao[], int total_individuos, int g)
-{
-    int i, j;
-    for (i = 0; i < total_individuos; ++i)
-    {
-        for (j = 0; j < NVARS; ++j)
-        {
-            if(populacao[i].gene[j] == 0.000000)
-            {
-                printf("%d\n",total_individuos);
-                imprimir_individuo(populacao[i]);
-                printf("INDIVIDUO: %d \n WARNING, TRETA %d\n",i, g);
-                Sleep(1000);
-                imprimir_populacao(populacao, total_individuos);
-            }
-        }
-    }
-}
+
 
 void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_individuos, double prob_mutacao, 
     int *comecar, t_individuo populacao_aux[], t_individuo melhores[], int maxClusters, t_individuo best)
@@ -712,6 +715,8 @@ void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_ind
             numberOfChromosomes++;
         }
     }
+
+    //printf("%d\n", numberOfChromosomes);
 
     double percentageChromosomesToCrossover = 0.8;
     int totalChromosomesToCrossover = round(percentageChromosomesToCrossover * numberOfChromosomes);
@@ -779,9 +784,13 @@ void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_ind
         novos_individuos[i] = pop_aux[vetor_pai[i]];
     }
 
+    verify_ALL(novos_individuos, numberOfChromosomes, 10101010, 666);
+
     op_selecao_de_sobreviventes(populacao_aux, numberOfChromosomes, novos_individuos, *comecar);
 
-    *comecar += numberOfChromosomes;    
+    *comecar += numberOfChromosomes;
+
+    //printf("%d\n", *comecar);
 
     if(numberOfChromosomes != 0)
     {
@@ -830,6 +839,7 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
     {
         for (i = 0; i < maxClusters; ++i)
         {
+
             pai = melhores[vetor_pai[i]];
             mae = melhores[vetor_pai[i+1]];
             op_uniformcrossover(&pai, &mae, funcao);
@@ -954,7 +964,88 @@ void escalonamento_linear(t_individuo pop[], double c, int total_individuos)
     }
 
 }
-    
+
+double euclidean_distance(t_individuo ind1, t_individuo ind2)
+{
+    double euclidean = 0.0;
+    int i;
+    for (i = 0; i < NVARS; ++i)
+    {
+        euclidean += pow((ind1.gene[i] - ind2.gene[i]),2);
+    }
+    return sqrt(euclidean);
+}
+
+t_individuo encontra_melhor(t_individuo ind1, t_individuo ind2)
+{
+    if (ind1.fitness < ind2.fitness)
+    {
+        return ind1;
+    }
+    else
+    {
+        return ind2;
+    }
+}
+
+void crowding(t_individuo pop[], int total_individuos, int funcao, double prob_mutacao)
+{
+    int CROWDING_SIZE = 30;
+    t_individuo pai;
+    t_individuo mae;
+    int i, aux;
+    int *vetor_aux = (int*) malloc (total_individuos*sizeof(int));
+    int *vetor_pai = (int*) malloc (CROWDING_SIZE*sizeof(int));
+    double *vetor_distancia = (double*) malloc (CROWDING_SIZE*sizeof(double));
+    double menor = 9999;
+
+
+
+    for (i = 0; i < total_individuos; ++i)
+    {
+        vetor_aux[i] = i;
+    }
+
+    shuffle(vetor_aux, total_individuos);
+
+    for (i = 0; i < CROWDING_SIZE; ++i)
+    {
+        vetor_pai[i] = vetor_aux[i];
+    }
+
+    for (i = 0; i < CROWDING_SIZE; ++i)
+    {
+        pai = pop[vetor_pai[i]];
+        mae = pop[vetor_pai[i+1]];
+        double u = nextDouble();
+        if (u < 0.8)
+        {
+            op_uniformcrossover(&pai, &mae, funcao);
+        }
+        u = nextDouble();
+        if (u < 0.05)
+        {
+            op_mutacao(&pai,prob_mutacao,funcao);
+            op_mutacao(&mae,prob_mutacao,funcao);
+        }
+
+        if ((euclidean_distance(pai, pop[vetor_pai[i]]) + euclidean_distance(mae, pop[vetor_pai[i+1]])) < (euclidean_distance(mae, pop[vetor_pai[i]]) + euclidean_distance(pai, pop[vetor_pai[i+1]])))
+        {
+
+            pai = encontra_melhor(pai, pop[vetor_pai[i]]);
+            mae = encontra_melhor(mae, pop[vetor_pai[i+1]]);
+        }
+        else
+        {
+            pai = encontra_melhor(pai, pop[vetor_pai[i+1]]);
+            mae = encontra_melhor(mae, pop[vetor_pai[i]]);
+        }
+        pop[vetor_pai[i]] = pai;
+        pop[vetor_pai[i+1]] = mae;
+        i++;
+    }
+}
+
 
 
 
@@ -1020,6 +1111,7 @@ void executar(int funcao, int total_individuos, int geracoes){
 
         int g = 0; //contador de geracoes
         int i;
+        double u = 0.001;
         for(g = 0; g < geracoes; g++){
             double clusterID[total_individuos];
             double distanceFromCenter[total_individuos];
@@ -1033,29 +1125,26 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            clusterAnalysis(populacao, total_individuos, g, populacao_aux2);
+            clusterAnalysis(populacao, total_individuos, g, u);
 
-            // if(g < aux_inicio)
-            // {
-            //     escalonamento_linear(populacao, 1.2, total_individuos);
-            // }            
-            // else if(g > aux_final)
-            // {
-            //     escalonamento_linear(populacao, 2.0, total_individuos);
-            // }                
-            // else
-            // {
-            //     c += 0.8/(aux_final - aux_inicio);
-            //     escalonamento_linear(populacao, c, total_individuos);
-            // }
+            if (u > 0.9)
+            {
+                u = 0.9;
+            }
+            else
+            {
+                u += 0.000008;
+            }
 
             maxClusters = g_habitatsSize;
+
             t_individuo melhores[maxClusters];
 
             for (i = 0; i < maxClusters; ++i)
             {
                 improveCluster(populacao, i, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores, maxClusters, best);
             }
+
 
             improveIdeals(melhores, maxClusters, funcao, prob_mutacao);   
 
@@ -1075,10 +1164,14 @@ void executar(int funcao, int total_individuos, int geracoes){
             {
                 populacao[total_individuos-1] = best;
             }
+
+
                 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
             fprintf(fp, "%d %.10f %f\n", g, best.fitness, diversidade);
+
+            crowding(populacao, total_individuos, funcao, prob_mutacao);
 
             prob_mutacao -= 0.001;
 

@@ -107,7 +107,7 @@ void printDendogram(int total_individuos, int g)
     unsigned short int i=0;
     FILE *dendogram;
     dendogram = fopen("dendogram.txt", "a");
-    if (g % 3333 == 0)
+    if (g % 333 == 0)
     {
         for(i=0; i< total_individuos-1; i++)
         {
@@ -145,7 +145,6 @@ void buildHabitats(int total_individuos, double** distances)
 
     g_habitatsSize = 0;
 
-
     for (i = 0; i < total_individuos; i++)
     {
         H[i].h_ind_count = 0; 
@@ -153,7 +152,8 @@ void buildHabitats(int total_individuos, double** distances)
 
     while (sum_tabu < total_individuos-1)
     {
-        if ( nextDouble() >= g_tree[cur_node-1].distance) //link those two itens
+        double u = nextDouble();
+        if ( u >= g_tree[cur_node-1].distance) //link those two itens
         {
             if (cur_node == total_individuos-1) //first iteration.
             {

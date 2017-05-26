@@ -1086,7 +1086,6 @@ void executar(int funcao, int total_individuos, int geracoes){
 
     FILE *fpMedia;
     FILE *fpDiversidade;
-    FILE *fp;
     FILE *fpNumeroCluster;
     FILE *best_geracoes;
 
@@ -1102,7 +1101,6 @@ void executar(int funcao, int total_individuos, int geracoes){
     fpMedia = fopen(buf, "w+");
     fpDiversidade = fopen(buf1, "w+");
     best_geracoes = fopen(buf3, "w+");
-    fp = fopen("output.txt", "w+");
     fpNumeroCluster = fopen(buf2, "w+");
     gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)
@@ -1187,7 +1185,7 @@ void executar(int funcao, int total_individuos, int geracoes){
                 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            fprintf(fp, "%d %.10f %f\n", g, best.fitness, diversidade);
+            //fprintf(fp, "%d %.10f %f\n", g, best.fitness, diversidade);
 
             //crowding(populacao, total_individuos, funcao, prob_mutacao, populacao_aux2);
 
@@ -1250,7 +1248,6 @@ void executar(int funcao, int total_individuos, int geracoes){
     printf("Mean: %f +/- %f", mean, std_dev);
 
     fclose(best_geracoes);
-    fclose(fp);
     fclose(fpMedia);
     fclose(fpDiversidade);
     fclose(fpNumeroCluster);

@@ -471,7 +471,6 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
 
     FILE *fpMedia;
     FILE *fpDiversidade;
-    FILE *fp;
     FILE *best_geracoes;
 
     char buf[0x100];
@@ -485,7 +484,6 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     fpDiversidade = fopen(buf1, "w+");
     best_geracoes = fopen(buf2,"w+");
 
-    fp = fopen("output_AGPADRAO.txt", "w+");
     gettimeofday(&timevalA,NULL);
     for (run = 0; run < RUNS; ++run)
     {
@@ -548,7 +546,7 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            fprintf(fp, "%d %f %f\n", g, best.fitness, diversidade);
+            //fprintf(fp, "%d %f %f\n", g, best.fitness, diversidade);
 
             prob_mutacao -= 0.001;
 
@@ -564,7 +562,7 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
             /* code */
         }
         printf("%d\n", run);
-        fprintf(fp, "-------------------------------");    
+        //fprintf(fp, "-------------------------------");    
     }
     gettimeofday(&timevalB,NULL);
 
@@ -609,7 +607,6 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     printf("Mean: %f +/- %f", mean, std_dev);
 
     fclose(best_geracoes);
-    fclose(fp);
     fclose(fpMedia);
     fclose(fpDiversidade);
 

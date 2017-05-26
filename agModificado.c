@@ -20,7 +20,7 @@
 #include "gerador_numeros.h"
 
 #define TAM_TORNEIO 5
-#define RUNS 5
+#define RUNS 10
 
 double m_nmdf = 0;
 /*
@@ -1031,12 +1031,16 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     FILE *fpMedia;
     FILE *fpDiversidade;
     FILE *fp;
+    FILE *best_geracoes;
 
     char buf[0x100];
     snprintf(buf, sizeof(buf), "Dados_KMEANS/GERACOESKMEANS_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
     char buf1[0x100];
     snprintf(buf1, sizeof(buf1), "Dados_KMEANS/DIVERSITYKMEANS_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
+    char buf2[0x100];
+    snprintf(buf2, sizeof(buf2), "DADOS_AGPADRAO/BEST_GERACOES_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
 
+    best_geracoes = fopen(buf2, "w+");
     fpMedia = fopen(buf, "w+");
     fpDiversidade = fopen(buf1, "w+");
     fp = fopen("output.txt", "w+");
@@ -1158,14 +1162,16 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     {
         sum_squares += vet_melhores[i][geracoes-1] * vet_melhores[i][geracoes-1];
         sum += vet_melhores[i][geracoes-1];        
+        fprintf(best_geracoes, "%lf,\n", vet_melhores[i][geracoes-1]);
     }
 
     double mean = (double)sum / RUNS;
     double variance = (double)sum_squares / RUNS - (mean * mean);
     double std_dev = sqrt(variance);
 
-    printf("Mean: %f\nStdDev: %f", mean, std_dev);
+    printf("Mean: %f +/- %f", mean, std_dev);
 
+    fclose(best_geracoes);
     fclose(fp);
     fclose(fpMedia);
     fclose(fpDiversidade);

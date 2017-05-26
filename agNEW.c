@@ -22,7 +22,7 @@
 #include "habitats.h"
 
 #define TAM_TORNEIO 5
-#define RUNS 5
+#define RUNS 10
 
 
 
@@ -681,8 +681,6 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes
         }
     }
 
-    verify_ALL(populacao, total_individuos, geracoes, 1);
-
     free(index);
     free(aux);
     freeDistances(total_individuos);
@@ -784,8 +782,6 @@ void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_ind
         novos_individuos[i] = pop_aux[vetor_pai[i]];
     }
 
-    verify_ALL(novos_individuos, numberOfChromosomes, 10101010, 666);
-
     op_selecao_de_sobreviventes(populacao_aux, numberOfChromosomes, novos_individuos, *comecar);
 
     *comecar += numberOfChromosomes;
@@ -860,7 +856,7 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
     //imprimir_populacao(melhores, maxClusters);
 }
 
-void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int total_individuos, int maxClusters, double prob_mutacao, int funcao, t_individuo best_melhores)
+void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int total_individuos, int maxClusters, double prob_mutacao, int funcao, t_individuo best_melhores, int g, int geracoes)
 {
     int i, j;
     t_individuo novos_individuos[total_individuos];
@@ -887,9 +883,29 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
     }
 
     for (i = 0; i < total_individuos; ++i)
-    {
-        u = nextDouble();
-        if (u < 0.9999)
+    {              
+        if (g < geracoes*0.15)
+        {
+            u = obter_numero_uniforme_continuo(0.9, 1.0);
+            //printf("Entrou1 %lf\n", u);
+        }
+        else if (g > geracoes*0.15 && g < geracoes*0.3)
+        {
+            u = obter_numero_uniforme_continuo(0.7, 1.0);
+            //printf("Entrou2 %lf\n", u);
+        }
+        else if (g > geracoes*0.3 && g < geracoes*0.5)
+        {
+            u = obter_numero_uniforme_continuo(0.5, 1.0);
+            //printf("Entrou3 %lf\n", u);
+        }
+        else
+        {
+            u = nextDouble();
+            //printf("Entrou4 %lf\n", u);
+        }        
+        //u = nextDouble();
+        if (u < 0.999)
         {
             if (vetor_pai[i] >= total_individuos)
             {
@@ -988,67 +1004,60 @@ t_individuo encontra_melhor(t_individuo ind1, t_individuo ind2)
     }
 }
 
-void crowding(t_individuo pop[], int total_individuos, int funcao, double prob_mutacao)
+double encontra_menor_distancia(double *dist, int CROWDING_SIZE)
 {
-    int CROWDING_SIZE = 30;
-    t_individuo pai;
-    t_individuo mae;
-    int i, aux;
-    int *vetor_aux = (int*) malloc (total_individuos*sizeof(int));
-    int *vetor_pai = (int*) malloc (CROWDING_SIZE*sizeof(int));
-    double *vetor_distancia = (double*) malloc (CROWDING_SIZE*sizeof(double));
+    int i;
     double menor = 9999;
-
-
-
-    for (i = 0; i < total_individuos; ++i)
-    {
-        vetor_aux[i] = i;
-    }
-
-    shuffle(vetor_aux, total_individuos);
-
     for (i = 0; i < CROWDING_SIZE; ++i)
     {
-        vetor_pai[i] = vetor_aux[i];
+        if (dist[i] < menor)
+        {
+            menor = dist[i];
+        }
     }
-
-    for (i = 0; i < CROWDING_SIZE; ++i)
-    {
-        pai = pop[vetor_pai[i]];
-        mae = pop[vetor_pai[i+1]];
-        double u = nextDouble();
-        if (u < 0.8)
-        {
-            op_uniformcrossover(&pai, &mae, funcao);
-        }
-        u = nextDouble();
-        if (u < 0.05)
-        {
-            op_mutacao(&pai,prob_mutacao,funcao);
-            op_mutacao(&mae,prob_mutacao,funcao);
-        }
-
-        if ((euclidean_distance(pai, pop[vetor_pai[i]]) + euclidean_distance(mae, pop[vetor_pai[i+1]])) < (euclidean_distance(mae, pop[vetor_pai[i]]) + euclidean_distance(pai, pop[vetor_pai[i+1]])))
-        {
-
-            pai = encontra_melhor(pai, pop[vetor_pai[i]]);
-            mae = encontra_melhor(mae, pop[vetor_pai[i+1]]);
-        }
-        else
-        {
-            pai = encontra_melhor(pai, pop[vetor_pai[i+1]]);
-            mae = encontra_melhor(mae, pop[vetor_pai[i]]);
-        }
-        pop[vetor_pai[i]] = pai;
-        pop[vetor_pai[i+1]] = mae;
-        i++;
-    }
+    return menor;
 }
 
 
 
+void crowding(t_individuo pop[], int total_individuos, int funcao, double prob_mutacao, t_individuo pop_aux[])
+{
+    //t_individuo pop = população alterada!!!
+    //t_individuo pop_aux = população normal!!!
+    int CROWDING_SIZE = 2;
+    int i, aux, j;
+    int *vetor_aux = (int*) malloc (total_individuos*sizeof(int));
+    int *vetor_aux2 = (int*) malloc (total_individuos*sizeof(int));
+    int *vetor_pai = (int*) malloc (CROWDING_SIZE*sizeof(int));
+    double *vetor_distancia = (double*) malloc (CROWDING_SIZE*sizeof(double));
 
+    for (i = 0; i < total_individuos; ++i)
+    {
+        vetor_aux[i] = i;
+        vetor_aux2[i] = i;
+    }
+
+    shuffle(vetor_aux, total_individuos);
+    shuffle(vetor_aux2, total_individuos);
+
+    for (i = 0; i < CROWDING_SIZE; ++i)
+    {
+        for (j= 0; j < CROWDING_SIZE; ++j)
+        {
+            vetor_pai[j] = vetor_aux[j];
+            vetor_distancia[j] = euclidean_distance(pop[vetor_aux2[i]], pop_aux[vetor_pai[j]]);
+        }
+        double min = encontra_menor_distancia(vetor_distancia, CROWDING_SIZE);
+        for (j = 0; j < CROWDING_SIZE; ++j)
+        {
+            if (vetor_distancia[j] == min)
+            {
+                pop[vetor_aux2[i]] = pop_aux[vetor_pai[j]];
+                break;
+            }
+        }
+    }
+}
 
 /*
  * Evolucao da Populacao
@@ -1079,6 +1088,7 @@ void executar(int funcao, int total_individuos, int geracoes){
     FILE *fpDiversidade;
     FILE *fp;
     FILE *fpNumeroCluster;
+    FILE *best_geracoes;
 
     char buf[0x100];
     snprintf(buf, sizeof(buf), "Dados_SINGLELINK/GERACOESSINGLE_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
@@ -1086,10 +1096,12 @@ void executar(int funcao, int total_individuos, int geracoes){
     snprintf(buf1, sizeof(buf1), "Dados_SINGLELINK/DIVERSITYSINGLE_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
     char buf2[0x100];
     snprintf(buf2, sizeof(buf2), "Dados_SINGLELINK/CLUSTER_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
+    char buf3[0x100];
+    snprintf(buf3, sizeof(buf3), "Dados_SINGLELINK/BEST_GERACOES_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
 
     fpMedia = fopen(buf, "w+");
     fpDiversidade = fopen(buf1, "w+");
-
+    best_geracoes = fopen(buf3, "w+");
     fp = fopen("output.txt", "w+");
     fpNumeroCluster = fopen(buf2, "w+");
     gettimeofday(&timevalA,NULL);
@@ -1121,7 +1133,9 @@ void executar(int funcao, int total_individuos, int geracoes){
             t_individuo populacao_aux2[total_individuos];
             t_individuo best;
             t_individuo best_after;
-            t_individuo best_melhores;            
+            t_individuo best_melhores;
+
+            memcpy(populacao_aux2, populacao, sizeof(t_individuo)*total_individuos);
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
@@ -1131,9 +1145,13 @@ void executar(int funcao, int total_individuos, int geracoes){
             {
                 u = 0.9;
             }
+            else if (g < geracoes*0.8)
+            {
+                u += (0.9/((double)geracoes+geracoes*0.8));
+            }
             else
             {
-                u += 0.000008;
+                u += (0.9/((double)geracoes));
             }
 
             maxClusters = g_habitatsSize;
@@ -1150,7 +1168,7 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             memcpy(populacao, populacao_aux, sizeof(t_individuo)*total_individuos);
 
-            generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao, best_melhores);
+            generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao, best_melhores, g, geracoes);
 
             double diversidade = diversity_population(populacao, total_individuos);
 
@@ -1171,7 +1189,7 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             fprintf(fp, "%d %.10f %f\n", g, best.fitness, diversidade);
 
-            crowding(populacao, total_individuos, funcao, prob_mutacao);
+            //crowding(populacao, total_individuos, funcao, prob_mutacao, populacao_aux2);
 
             prob_mutacao -= 0.001;
 
@@ -1222,6 +1240,7 @@ void executar(int funcao, int total_individuos, int geracoes){
     {
         sum_squares += vet_melhores[i][geracoes-1] * vet_melhores[i][geracoes-1];
         sum += vet_melhores[i][geracoes-1];        
+        fprintf(best_geracoes, "%lf,\n", vet_melhores[i][geracoes-1]);
     }
 
     double mean = (double)sum / RUNS;
@@ -1230,6 +1249,7 @@ void executar(int funcao, int total_individuos, int geracoes){
 
     printf("Mean: %f +/- %f", mean, std_dev);
 
+    fclose(best_geracoes);
     fclose(fp);
     fclose(fpMedia);
     fclose(fpDiversidade);

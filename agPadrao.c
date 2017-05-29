@@ -609,6 +609,4 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     fclose(best_geracoes);
     fclose(fpMedia);
     fclose(fpDiversidade);
-
 }
-

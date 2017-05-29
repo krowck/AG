@@ -1252,4 +1252,3 @@ void executar(int funcao, int total_individuos, int geracoes){
     fclose(fpDiversidade);
     fclose(fpNumeroCluster);
 }
-

@@ -894,7 +894,7 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
             u = obter_numero_uniforme_continuo(0.7, 1.0);
             //printf("Entrou2 %lf\n", u);
         }
-        else if (g > geracoes*0.3 && g < geracoes*0.5)
+        else if (g > geracoes*0.3 && g < geracoes*0.4)
         {
             u = obter_numero_uniforme_continuo(0.5, 1.0);
             //printf("Entrou3 %lf\n", u);
@@ -905,7 +905,7 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
             //printf("Entrou4 %lf\n", u);
         }        
         //u = nextDouble();
-        if (u < 0.999)
+        if (u < 0.9999)
         {
             if (vetor_pai[i] >= total_individuos)
             {
@@ -1019,45 +1019,6 @@ double encontra_menor_distancia(double *dist, int CROWDING_SIZE)
 }
 
 
-
-void crowding(t_individuo pop[], int total_individuos, int funcao, double prob_mutacao, t_individuo pop_aux[])
-{
-    //t_individuo pop = população alterada!!!
-    //t_individuo pop_aux = população normal!!!
-    int CROWDING_SIZE = 2;
-    int i, aux, j;
-    int *vetor_aux = (int*) malloc (total_individuos*sizeof(int));
-    int *vetor_aux2 = (int*) malloc (total_individuos*sizeof(int));
-    int *vetor_pai = (int*) malloc (CROWDING_SIZE*sizeof(int));
-    double *vetor_distancia = (double*) malloc (CROWDING_SIZE*sizeof(double));
-
-    for (i = 0; i < total_individuos; ++i)
-    {
-        vetor_aux[i] = i;
-        vetor_aux2[i] = i;
-    }
-
-    shuffle(vetor_aux, total_individuos);
-    shuffle(vetor_aux2, total_individuos);
-
-    for (i = 0; i < CROWDING_SIZE; ++i)
-    {
-        for (j= 0; j < CROWDING_SIZE; ++j)
-        {
-            vetor_pai[j] = vetor_aux[j];
-            vetor_distancia[j] = euclidean_distance(pop[vetor_aux2[i]], pop_aux[vetor_pai[j]]);
-        }
-        double min = encontra_menor_distancia(vetor_distancia, CROWDING_SIZE);
-        for (j = 0; j < CROWDING_SIZE; ++j)
-        {
-            if (vetor_distancia[j] == min)
-            {
-                pop[vetor_aux2[i]] = pop_aux[vetor_pai[j]];
-                break;
-            }
-        }
-    }
-}
 
 /*
  * Evolucao da Populacao
@@ -1234,7 +1195,7 @@ void executar(int funcao, int total_individuos, int geracoes){
 
     double sum = 0, sum_squares = 0;
 
-    for (int i = 0; i < RUNS; ++i)
+    for (i = 0; i < RUNS; ++i)
     {
         sum_squares += vet_melhores[i][geracoes-1] * vet_melhores[i][geracoes-1];
         sum += vet_melhores[i][geracoes-1];        

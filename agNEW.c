@@ -22,7 +22,7 @@
 #include "habitats.h"
 
 #define TAM_TORNEIO 5
-#define RUNS 10
+#define RUNS 5
 
 
 
@@ -492,12 +492,13 @@ double find_maximum(double a[], int n)
     return index;
 }
 
-double** distancia_euclidiana(t_individuo pop[], int total_individuos)
+double** distancia_euclidiana(t_individuo pop[], int total_individuos, int g)
 {
     double media = 0.0;
     double euclid_max = 0;
     int i, j, k;
     unsigned short int a = 0;
+    //FILE *fep = fopen("distancias.txt", "a");
 
     distances = (double**) malloc(total_individuos*sizeof(double*));
     for(a = 0; a < total_individuos; a++)
@@ -528,9 +529,22 @@ double** distancia_euclidiana(t_individuo pop[], int total_individuos)
         for(j = i +1; j < total_individuos; j++)
         {
             distances[i][j] = distances[i][j] / euclid_max;
-            distances[j][i] = distances[i][j];
+            distances[j][i] = distances[i][j];     
         }
     }
+
+    // for(i = 0; i < total_individuos; i++)
+    // {
+    //     for(j = 0; j < total_individuos; j++)
+    //     {
+    //         if (g == 100)
+    //         {
+    //             fprintf(fep, "%lf ", distances[i][j]);
+    //         }        
+    //     }
+    //     fprintf(fep, "\n");
+    // }
+    // fclose(fep);
     return distances;
 }
 
@@ -590,7 +604,7 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes
     //verify_ALL(populacao, total_individuos, geracoes, 2);
 
     initHabitats(total_individuos);
-    distancia = distancia_euclidiana(populacao, total_individuos);
+    distancia = distancia_euclidiana(populacao, total_individuos, geracoes);
     singlelink(total_individuos, NVARS, distancia, aux);
     buildHabitats(total_individuos, distancia);
     printDendogram(total_individuos, geracoes);
@@ -835,7 +849,6 @@ void improveIdeals(t_individuo melhores[], int maxClusters, int funcao, double p
     {
         for (i = 0; i < maxClusters; ++i)
         {
-
             pai = melhores[vetor_pai[i]];
             mae = melhores[vetor_pai[i+1]];
             op_uniformcrossover(&pai, &mae, funcao);
@@ -1089,73 +1102,113 @@ void executar(int funcao, int total_individuos, int geracoes){
             int comecar = 0;
 
             t_individuo populacao_aux[total_individuos];
-            t_individuo populacao_aux2[total_individuos];
             t_individuo best;
             t_individuo best_after;
             t_individuo best_melhores;
+            int vetor_aux[total_individuos];
+            int vetor_pai[total_individuos];
+            t_individuo best_ag;
+            best_ag.fitness = 99999999999999;
+            t_individuo mae;
+            t_individuo pai;
+            t_individuo *novos_individuos = (t_individuo*) malloc(total_individuos*sizeof(t_individuo));
 
-            memcpy(populacao_aux2, populacao, sizeof(t_individuo)*total_individuos);
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            clusterAnalysis(populacao, total_individuos, g, u);
+            if(g < geracoes*0.9)
+            {
+                clusterAnalysis(populacao, total_individuos, g, u);
 
-            if (u > 0.9)
-            {
-                u = 0.9;
-            }
-            else if (g < geracoes*0.8)
-            {
-                u += (0.9/((double)geracoes+geracoes*0.8));
+                if (u > 0.9)
+                {
+                    u = 0.9;
+                }
+                else if (g < geracoes*0.8)
+                {
+                    u += (0.9/((double)geracoes+geracoes*0.8));
+                }
+                else
+                {
+                    u += (0.9/((double)geracoes));
+                }
+
+                maxClusters = g_habitatsSize;
+
+                t_individuo melhores[maxClusters];
+
+                for (i = 0; i < maxClusters; ++i)
+                {
+                    improveCluster(populacao, i, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores, maxClusters, best);
+                }
+
+                improveIdeals(melhores, maxClusters, funcao, prob_mutacao);   
+
+                memcpy(populacao, populacao_aux, sizeof(t_individuo)*total_individuos);
+
+                generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao, best_melhores, g, geracoes);
+
+                encontra_melhor_individuo(populacao, total_individuos, &best_after);
             }
             else
             {
-                u += (0.9/((double)geracoes));
-            }
+                for (i = 0; i < total_individuos; ++i)
+                {
+                    vetor_aux[i] = i;
+                }
 
-            maxClusters = g_habitatsSize;
+                shuffle(vetor_aux, total_individuos);
 
-            t_individuo melhores[maxClusters];
+                for (i = 0; i < total_individuos; ++i)
+                {
+                    vetor_pai[i] = vetor_aux[i];
+                }
 
-            for (i = 0; i < maxClusters; ++i)
-            {
-                improveCluster(populacao, i, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores, maxClusters, best);
-            }
-
-
-            improveIdeals(melhores, maxClusters, funcao, prob_mutacao);   
-
-            memcpy(populacao, populacao_aux, sizeof(t_individuo)*total_individuos);
-
-            generateNextPopulation(populacao, melhores, total_individuos, maxClusters, prob_mutacao, funcao, best_melhores, g, geracoes);
-
-            double diversidade = diversity_population(populacao, total_individuos);
-
-            encontra_melhor_individuo(populacao, total_individuos, &best_after);
+                for (i = 0; i < total_individuos; ++i)
+                {
+                    op_selecao_de_pais(populacao, total_individuos, &pai, &mae);
+                    double chance_crossover = nextDouble();
+                    op_uniformcrossover(&pai, &mae, funcao);                
+                    op_mutacao(&pai,0.02,funcao);
+                    op_mutacao(&mae,0.02,funcao);
+                    novos_individuos[i] = pai;
+                    i++;
+                    novos_individuos[i] = mae;
+                }                
+                op_selecao_de_sobreviventes(populacao, total_individuos, novos_individuos, 0);
+                encontra_melhor_individuo(populacao, total_individuos, &best_ag);
+            }          
 
             if (best_after.fitness < best.fitness)
             {
                 populacao[total_individuos-1] = best_after;
+            }
+            else if(best_ag.fitness < best.fitness && best_ag.fitness < best_after.fitness)
+            {
+                populacao[total_individuos-1] = best_ag;
             }
             else
             {
                 populacao[total_individuos-1] = best;
             }
 
-
-                
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            //fprintf(fp, "%d %.10f %f\n", g, best.fitness, diversidade);
-
-            //crowding(populacao, total_individuos, funcao, prob_mutacao, populacao_aux2);
-
+            double diversidade = diversity_population(populacao, total_individuos);
+                
             prob_mutacao -= 0.001;
 
             if (prob_mutacao <= minMutationRate)
             {
                 prob_mutacao = minMutationRate;
             }
+
+            if (best.fitness < 0) 
+            {
+                imprimir_individuo(best);
+                Sleep(5000);
+            }
+
             vet_melhores[run][g] = best.fitness;
             vet_diversidade[run][g] = diversidade;
             if (run == 0)
@@ -1206,7 +1259,7 @@ void executar(int funcao, int total_individuos, int geracoes){
     double variance = (double)sum_squares / RUNS - (mean * mean);
     double std_dev = sqrt(variance);
 
-    printf("Mean: %f +/- %f", mean, std_dev);
+    printf("Mean: %.10f +/- %f", mean, std_dev);
 
     fclose(best_geracoes);
     fclose(fpMedia);

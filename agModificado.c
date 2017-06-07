@@ -1037,7 +1037,7 @@ void executar(int funcao, int total_individuos, int geracoes, double prob_mutaca
     char buf1[0x100];
     snprintf(buf1, sizeof(buf1), "Dados_KMEANS/DIVERSITYKMEANS_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
     char buf2[0x100];
-    snprintf(buf2, sizeof(buf2), "DADOS_AGPADRAO/BEST_GERACOES_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
+    snprintf(buf2, sizeof(buf2), "Dados_KMEANS/BEST_GERACOES_FUNCAO%d_%dDIMENSOES.txt", funcao, NVARS);
 
     best_geracoes = fopen(buf2, "w+");
     fpMedia = fopen(buf, "w+");

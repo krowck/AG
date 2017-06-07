@@ -22,7 +22,7 @@
 #include "habitats.h"
 
 #define TAM_TORNEIO 5
-#define RUNS 5
+#define RUNS 10
 
 
 

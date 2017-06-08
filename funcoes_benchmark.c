@@ -121,6 +121,33 @@ float zakharov(double cromossomo[])
 	return obj;
 }
 
+float michaelewicz(double cromossomo[])
+{
+	aux = 0;
+	unsigned short int i;
+	for (i = 0; i < NVARS; i++)
+    {
+    	aux = aux + sin(cromossomo[i]) * pow(sin((i+1)*cromossomo[i]*cromossomo[i]/(float)PI), 2.0 * 10.0);
+    }
+	aux =  (-1*aux);
+
+	return aux;
+}
+
+float dixonprice(double cromossomo[])
+{
+	aux = 0;
+	aux1 = 0;
+	unsigned short int i;
+	aux = pow(cromossomo[0] - 1, 2);
+	for (i = 1; i < NVARS; i++)
+	{
+		aux1 += i * (pow((2*pow(cromossomo[i], 2)) - cromossomo[i-1], 2));
+	}
+	aux = aux + aux1;
+	return aux;
+}
+
 
 /*
  * Implementacao da funcao que informa os valores de dominio referente a funcao de benchmark RASTRIGIN
@@ -173,3 +200,14 @@ void d_zakharov(float d[])
 	d[1] = 10.0;
 }	
 
+void d_michaelewicz(float d[])
+{
+	d[0] = 0.00001;
+	d[1] = 3.1415;
+}
+
+void d_dixonprice(float d[])
+{
+	d[0] = -10.0;
+	d[1] = 10.0;
+}

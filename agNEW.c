@@ -126,6 +126,12 @@ float obter_fitness(int funcao, double cromossomo[]){
         case 8:
             fitness = zakharov(cromossomo);
             break;
+        case 9:
+            fitness = michaelewicz(cromossomo);
+            break;
+        case 10:
+            fitness = dixonprice(cromossomo);
+            break;
         default:
             printf ("\nERRO!\n");
     }
@@ -160,6 +166,12 @@ void identificar_dominio(int funcao, float *l_inf, float *l_sup){
             break;
         case 8:
             d_zakharov(d);
+            break;
+        case 9:
+            d_michaelewicz(d);
+            break;
+        case 10:
+            d_dixonprice(d);
             break;
         default:
             printf ("\nERRO!\n");
@@ -584,10 +596,13 @@ void verify_ALL(t_individuo populacao[], int total_individuos, int g, int gg)
         if (flag == 1)
         {
             printf("Geracao: %d INDIVIDUO: %d WARNING, NUMBER DA TRETA: %d CLUSTER: %d\n",g, i, gg, populacao[i].index);
+            printf("Individuo = %d\n", i);
+            imprimir_individuo(populacao[i]);
         }
     }
     if (flag == 1)
     {
+        
         Sleep(5000);
     }
 }
@@ -600,14 +615,15 @@ void clusterAnalysis(t_individuo populacao[], int total_individuos, int geracoes
     int *index = (int*) malloc(total_individuos*sizeof(int));
     int g_habitatsSizeAntes = 0;
     //printf("%d\n", geracoes);
-
-    //verify_ALL(populacao, total_individuos, geracoes, 2);
-
+    
     initHabitats(total_individuos);
+
     distancia = distancia_euclidiana(populacao, total_individuos, geracoes);
+
     singlelink(total_individuos, NVARS, distancia, aux);
+
     buildHabitats(total_individuos, distancia);
-    printDendogram(total_individuos, geracoes);
+    //printDendogram(total_individuos, geracoes);
 
     for (i = 0; i < total_individuos; ++i)
     {
@@ -754,6 +770,7 @@ void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_ind
         vetor_pai[i] = vetor_aux[i];
         cont2++;
     }
+
     for (i = cont2; i < numberOfChromosomes; ++i)
     {
         vetor_pai[i] = vetor_aux[i];
@@ -796,11 +813,17 @@ void improveCluster(t_individuo populacao[], int alvo, int funcao, int total_ind
         novos_individuos[i] = pop_aux[vetor_pai[i]];
     }
 
+    if (numberOfChromosomes == 2)
+    {
+        for (i = 0; i < numberOfChromosomes; ++i)
+        {
+            novos_individuos[i] = pop_aux[vetor_pai[i]];
+        }
+    }
+
     op_selecao_de_sobreviventes(populacao_aux, numberOfChromosomes, novos_individuos, *comecar);
 
     *comecar += numberOfChromosomes;
-
-    //printf("%d\n", *comecar);
 
     if(numberOfChromosomes != 0)
     {
@@ -924,7 +947,7 @@ void generateNextPopulation(t_individuo populacao[], t_individuo melhores[], int
             {
                 for (j = 0; j < NVARS; ++j)
                 {
-                    if (melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] < l_inf*2 || melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] > l_sup*2 || melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] == 0.000)
+                    if (melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] < l_inf || melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] > l_sup || melhores[(total_individuos+maxClusters-1) - vetor_pai[i]].gene[j] == 0.0000000)
                     {
                         flag = 1;
                     }
@@ -1116,7 +1139,7 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            if(g < geracoes*0.90)
+            if(g < geracoes*0.9)
             {
                 clusterAnalysis(populacao, total_individuos, g, u);
 
@@ -1140,8 +1163,9 @@ void executar(int funcao, int total_individuos, int geracoes){
                 for (i = 0; i < maxClusters; ++i)
                 {
                     improveCluster(populacao, i, funcao, total_individuos, prob_mutacao, &comecar, populacao_aux, melhores, maxClusters, best);
+                    
+                    //imprimir_populacao(melhores, i);
                 }
-
                 improveIdeals(melhores, maxClusters, funcao, prob_mutacao);   
 
                 memcpy(populacao, populacao_aux, sizeof(t_individuo)*total_individuos);
@@ -1203,11 +1227,6 @@ void executar(int funcao, int total_individuos, int geracoes){
                 prob_mutacao = minMutationRate;
             }
 
-            if (best.fitness < 0) 
-            {
-                imprimir_individuo(best);
-                Sleep(5000);
-            }
 
             vet_melhores[run][g] = best.fitness;
             vet_diversidade[run][g] = diversidade;

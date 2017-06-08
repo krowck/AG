@@ -32,10 +32,12 @@ void menu(){
     printf("6) Griewank\n");
     printf("7) Powell\n");
     printf("8) Zakharov\n");
+    printf("9) Michaelwicz\n");
+    printf("10) Dixon-Price\n");
 
     printf("Selecione a funcao a minimizar : ");
     scanf("%d",&funcao);
-    if (funcao < 1 || funcao > 8){
+    if (funcao < 1 || funcao > 10){
         printf("\nOpcao Invalida! Opcoes possiveis: 1-8 !!!\n");
         return;
     }

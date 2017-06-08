@@ -121,6 +121,12 @@ float obter_fitness(int funcao, double cromossomo[]){
         case 8:
             fitness = zakharov(cromossomo);
             break;
+        case 9:
+            fitness = michaelewicz(cromossomo);
+            break;
+        case 10:
+            fitness = dixonprice(cromossomo);
+            break;
         default:
             printf ("\nERRO!\n");
     }
@@ -155,6 +161,12 @@ void identificar_dominio(int funcao, float *l_inf, float *l_sup){
             break;
         case 8:
             d_zakharov(d);
+            break;
+        case 9:
+            d_michaelewicz(d);
+            break;
+        case 10:
+            d_dixonprice(d);
             break;
         default:
             printf ("\nERRO!\n");

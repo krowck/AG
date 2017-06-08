@@ -1116,7 +1116,7 @@ void executar(int funcao, int total_individuos, int geracoes){
 
             encontra_melhor_individuo(populacao, total_individuos, &best);
 
-            if(g < geracoes*0.9)
+            if(g < geracoes*0.90)
             {
                 clusterAnalysis(populacao, total_individuos, g, u);
 
